@@ -1,0 +1,6 @@
+{
+  "note": "Cowen Risk Metric (0-1) 為 ITC 會員專屬指標、無公開 API。此處為 Cowen 在影片/推特親口講的官方值，手動維護（每次跑 Cowen delta 時補一點）。非每日、為稀疏官方口徑點。",
+  "points": [
+    {"d": "2026-06-14", "v": 0.296, "src": "Dynamic DCA 影片：'current value just below 0.3'"}
+  ]
+}

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Daily Watchboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#141925; --panel2:#1b2230; --line:#283042;
+    --txt:#e6e9ef; --mut:#8a93a6; --accent:#f7931a; /* bitcoin orange */
+    --green:#3fb950; --amber:#d29922; --red:#f85149; --blue:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif;}
+  header{padding:18px 20px 10px;border-bottom:1px solid var(--line);
+    display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 16px}
+  header h1{font-size:18px;margin:0;letter-spacing:.5px}
+  header h1 b{color:var(--accent)}
+  .meta{font-size:12px;color:var(--mut)}
+  .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#3a2a12;color:var(--amber);border:1px solid #5a3f17}
+  .btc{font-size:12px;color:var(--mut)} .btc b{color:var(--txt)}
+  /* tabs */
+  .tabs{display:flex;gap:4px;padding:10px 16px 0}
+  .tab{padding:8px 16px;border:1px solid var(--line);border-bottom:none;
+    border-radius:8px 8px 0 0;background:var(--panel);color:var(--mut);cursor:pointer;font-size:13px}
+  .tab.active{background:var(--panel2);color:var(--txt);border-color:var(--accent)}
+  .wrap{padding:16px;max-width:1180px;margin:0 auto}
+  .rowlabel{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:1px;margin:6px 2px 10px}
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;position:relative;overflow:hidden}
+  .card .name{font-size:12px;color:var(--mut);display:flex;justify-content:space-between;align-items:center}
+  .card .val{font-size:26px;font-weight:700;margin:8px 0 2px;font-variant-numeric:tabular-nums}
+  .card .sub{font-size:12px;color:var(--mut)}
+  .card .stripe{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .pill{font-size:10px;padding:1px 7px;border-radius:8px;border:1px solid currentColor}
+  /* charts */
+  .rangebar{display:flex;gap:6px;margin-bottom:12px}
+  .rb{font-size:12px;padding:5px 14px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel);color:var(--mut);cursor:pointer}
+  .rb.active{border-color:var(--accent);color:var(--txt);background:var(--panel2)}
+  .charts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:26px}
+  .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px 6px}
+  .chartbox h3{margin:0 0 2px;font-size:13px;font-weight:600}
+  .chartbox .ch-cur{font-size:11px;color:var(--mut);margin-bottom:8px}
+  .chartbox canvas{max-height:170px}
+  /* interpretation */
+  .interp{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .ibox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .ibox h3{margin:0 0 8px;font-size:14px}
+  .ibox .f{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    background:#0d1320;border:1px solid var(--line);border-radius:6px;padding:7px 9px;color:#cdd6f4;margin-bottom:8px;overflow-x:auto}
+  .ibox p{margin:6px 0;font-size:13px;line-height:1.6;color:#c7cdda}
+  .ibox .rng{font-size:12px;color:var(--mut);line-height:1.7}
+  .ibox .rng b{color:var(--txt)}
+  .warn{color:var(--amber)}
+  .placeholder{text-align:center;padding:80px 20px;color:var(--mut)}
+  .placeholder .big{font-size:40px;margin-bottom:14px}
+  /* tab2 status board */
+  .synth{background:var(--panel2);border:1px solid var(--line);border-left:4px solid var(--accent);
+    border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .synth .h{font-size:12px;color:var(--mut);margin-bottom:6px;letter-spacing:1px}
+  .synth .tally{font-size:14px;font-weight:700;margin-bottom:8px}
+  .synth p{margin:0;font-size:13px;line-height:1.7;color:#c7cdda}
+  .legend{font-size:11px;color:var(--mut);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 2px -1px 6px}
+  .dot.red{background:var(--red)} .dot.yellow{background:var(--amber)} .dot.green{background:var(--green)}
+  .dot.bg{background:#6b7280} .dot.event{background:var(--blue)}
+  .tg{font-size:10px;padding:1px 6px;border-radius:6px;margin-left:4px;border:1px solid var(--line)}
+  .tg.calc{color:var(--blue)} .tg.manual{color:var(--amber)} .tg.framework{color:#a371f7} .tg.event{color:var(--blue)}
+  .signals{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .sig{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 14px;position:relative}
+  .sig .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px}
+  .sig .nm{font-size:13px;font-weight:600;line-height:1.3}
+  .sig .nm small{display:block;color:var(--mut);font-weight:400;font-size:11px;margin-top:1px}
+  .sig .light{flex-shrink:0;width:16px;height:16px;border-radius:50%;margin-top:2px;box-shadow:0 0 8px currentColor}
+  .sig .val{font-size:15px;font-weight:700;margin-bottom:7px;font-variant-numeric:tabular-nums}
+  .sig .pl{font-size:12px;line-height:1.6;color:#aeb6c5}
+  .sig .ft{font-size:10px;color:var(--mut);margin-top:9px;display:flex;justify-content:space-between}
+  .L-red{background:var(--red);color:var(--red)} .L-yellow{background:var(--amber);color:var(--amber)}
+  .L-green{background:var(--green);color:var(--green)} .L-bg{background:#6b7280;color:#6b7280}
+  .L-event{background:var(--blue);color:var(--blue)}
+  footer{padding:14px 20px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);text-align:center}
+  @media(max-width:820px){
+    .cards{grid-template-columns:repeat(2,1fr)}
+    .charts,.interp{grid-template-columns:1fr}
+    .signals{grid-template-columns:1fr}
+  }
+  @media(min-width:821px) and (max-width:1100px){
+    .signals{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1><b>₿</b> BTC Daily Watchboard</h1>
+  <span class="btc">BTC <b id="btcprice">—</b></span>
+  <span class="meta">資料截至 <b id="through">—</b> · 來源 bitcoin-data.com</span>
+  <span class="badge" id="seedbadge" style="display:none">SEED · 完整歷史待每日抓取補齊</span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="core">核心指標</div>
+  <div class="tab" data-tab="tab2">Tab 2（規劃中）</div>
+</div>
+
+<!-- ============ TAB 1 ============ -->
+<div class="wrap" id="tab-core">
+
+  <div class="rowlabel">① 當日核心數值</div>
+  <div class="cards" id="cards"></div>
+
+  <div class="rowlabel">② 走勢回顧</div>
+  <div class="rangebar">
+    <div class="rb active" data-range="7">1 週</div>
+    <div class="rb" data-range="30">1 個月</div>
+    <div class="rb" data-range="90">3 個月</div>
+  </div>
+  <div class="charts" id="charts"></div>
+
+  <div class="rowlabel">③ 公式與區間解讀</div>
+  <div class="interp" id="interp"></div>
+
+</div>
+
+<!-- ============ TAB 2 ============ -->
+<div class="wrap" id="tab-tab2" style="display:none">
+  <div class="synth" id="synth"></div>
+  <div class="legend">
+    訊號燈：<span class="dot red"></span>未到 <span class="dot yellow"></span>接近 <span class="dot green"></span>觸發 <span class="dot bg"></span>背景/非見底 <span class="dot event"></span>事件　·
+    型態：<span class="tg calc">自動計算</span><span class="tg manual">手動·週更</span><span class="tg framework">框架</span><span class="tg event">事件</span>
+  </div>
+  <div class="signals" id="signals"></div>
+</div>
+
+<footer>
+  Cowen Risk Metric 為 ITC 會員專屬指標、無公開 API，採手動維護其官方口徑值（非每日）。其餘三指標每日自動更新。<br>
+  數據僅供研究參考，非投資建議。
+</footer>
+
+<script>
+const META = {
+  realizedPrice: {
+    title:"Realized Price", zh:"已實現價格", unit:"$", color:"var(--blue)",
+    formula:"Realized Price = Realized Cap ÷ Circulating Supply",
+    desc:"全網平均買入成本（每枚幣以最後一次鏈上移動時的價格計值後加總，再除以流通量）。",
+    range:"市價 <b>></b> RP → 全網平均賺錢；市價 <b><</b> RP → 平均虧損。歷史每次 cycle bottom（2011/14/18/20/22）<b>都曾跌破 RP</b>。Cowen：見底『之前』通常會破一次。"
+  },
+  balancedPrice: {
+    title:"Balance Price", zh:"平衡價格", unit:"$", color:"#a371f7",
+    formula:"Balance Price = Realized Price − Transferred Price",
+    desc:"『已付出成本（RP）− 已花掉成本（Transferred Price）= 淨持有成本』，是更深的一道地板。",
+    range:"歷史<b>最深</b>熊市低點（2011/2015/2018/2020）才會觸及 BP。<span class='warn'>⚠ 本源算出 ~$28.8k；Cowen 口徑曾講 ~$39–40k，方法/來源不同 [verify]</span>。"
+  },
+  mvrvZscore: {
+    title:"MVRV Z-Score", zh:"市值/實現值 Z 分數", unit:"", color:"var(--green)",
+    formula:"Z = (Market Cap − Realized Cap) ÷ σ(Market Cap)",
+    desc:"市值偏離全網成本（已實現市值）幾個標準差。MVRV = Market Value to Realized Value。",
+    range:"<b>>7</b> 狂熱頂(2017/2021)｜<b>2–5</b> 牛市中段｜<b>0.5–2</b> 修正中段｜<b>&lt;0.1 或負值</b> = cycle bottom 區(2011/15/18/22)。"
+  },
+  cowenRisk: {
+    title:"Cowen Risk Metric", zh:"Cowen 風險分數 (0–1)", unit:"", color:"var(--accent)",
+    formula:"專屬：價格相對長期對數迴歸 + diminishing returns，normalize 0–1（官方算法未公開）",
+    desc:"0 = 極度低估（買），1 = 極度高估（賣）。本輪 Cowen：buy ≤0.3 / hold 0.3–0.6 / sell >0.6。",
+    range:"<span class='warn'>⚠ 手動維護官方口徑值、非每日</span>。最新 <b>0.296</b>（6/14『just below 0.3』）→ 剛進買進區。"
+  }
+};
+const ORDER = ["realizedPrice","balancedPrice","mvrvZscore","cowenRisk"];
+let DATA=null, RISK=null, RANGE=7, charts={};
+
+function fmt(v,unit){
+  if(v==null) return "—";
+  if(unit==="$") return "$"+Math.round(v).toLocaleString();
+  return (+v).toFixed(3);
+}
+function zoneColor(key,v){
+  if(v==null) return "var(--mut)";
+  if(key==="mvrvZscore") return v<0.5?"var(--green)":v<2?"var(--blue)":v<7?"var(--amber)":"var(--red)";
+  if(key==="cowenRisk")  return v<0.3?"var(--green)":v<0.6?"var(--amber)":"var(--red)";
+  return META[key].color;
+}
+
+async function load(){
+  DATA = await fetch("data.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json());
+  try{ RISK = await fetch("cowen_risk_manual.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json()); }catch(e){ RISK={points:[]}; }
+  document.getElementById("through").textContent = DATA.data_through || "—";
+  document.getElementById("btcprice").textContent = fmt(DATA.current?.btcPrice,"$");
+  if(DATA.seed) document.getElementById("seedbadge").style.display="inline-block";
+  renderCards(); renderCharts(); renderInterp();
+}
+
+function curVal(key){
+  if(key==="cowenRisk") return RISK?.points?.length? RISK.points[RISK.points.length-1].v : null;
+  return DATA.current?.[key];
+}
+function series(key){
+  if(key==="cowenRisk") return (RISK?.points||[]).map(p=>({d:p.d,v:p.v}));
+  return DATA.series?.[key]||[];
+}
+
+function renderCards(){
+  const el=document.getElementById("cards"); el.innerHTML="";
+  ORDER.forEach(key=>{
+    const v=curVal(key), m=META[key], col=zoneColor(key,v);
+    let sub="";
+    if(key==="realizedPrice"||key==="balancedPrice"){
+      const r=DATA.current?.btcPrice; if(r&&v) sub=`BTC 為其 ${(r/v).toFixed(2)}×`;
+    } else if(key==="mvrvZscore"){ sub = v<0.5?"偏低區":v<2?"修正中段":v<7?"偏高":"狂熱頂"; }
+    else if(key==="cowenRisk"){ sub = "手動 · 6/14 官方口徑"; }
+    el.innerHTML+=`<div class="card"><div class="stripe" style="background:${col}"></div>
+      <div class="name"><span>${m.title}</span><span class="pill" style="color:${col}">${m.zh}</span></div>
+      <div class="val" style="color:${col}">${fmt(v,m.unit)}</div>
+      <div class="sub">${sub}</div></div>`;
+  });
+}
+
+function sliceRange(arr,n){ return arr.length<=n?arr:arr.slice(-n); }
+
+function renderCharts(){
+  const el=document.getElementById("charts"); el.innerHTML="";
+  ORDER.forEach(key=>{
+    const m=META[key];
+    el.innerHTML+=`<div class="chartbox"><h3 style="color:${m.color}">${m.title} <span style="color:var(--mut);font-weight:400">${m.zh}</span></h3>
+      <div class="ch-cur" id="cur-${key}"></div><canvas id="c-${key}"></canvas></div>`;
+  });
+  ORDER.forEach(drawChart);
+}
+function drawChart(key){
+  const m=META[key], full=series(key), s=sliceRange(full,RANGE);
+  const cur=document.getElementById("cur-"+key);
+  if(s.length){ cur.textContent=`現值 ${fmt(s[s.length-1].v,m.unit)} · ${s.length} 點 (${s[0].d}→${s[s.length-1].d})`; }
+  else cur.textContent="無資料";
+  if(charts[key]) charts[key].destroy();
+  const ctx=document.getElementById("c-"+key);
+  charts[key]=new Chart(ctx,{type:"line",
+    data:{labels:s.map(p=>p.d.slice(5)),datasets:[{data:s.map(p=>p.v),
+      borderColor:m.color,backgroundColor:m.color+"22",fill:true,
+      tension:.25,pointRadius:s.length>40?0:2,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:true,
+      plugins:{legend:{display:false},tooltip:{mode:"index",intersect:false}},
+      scales:{x:{ticks:{color:"#8a93a6",maxTicksLimit:6,font:{size:10}},grid:{display:false}},
+              y:{ticks:{color:"#8a93a6",font:{size:10}},grid:{color:"#283042"}}}}});
+}
+
+function renderInterp(){
+  const el=document.getElementById("interp"); el.innerHTML="";
+  ORDER.forEach(key=>{
+    const m=META[key];
+    el.innerHTML+=`<div class="ibox"><h3 style="color:${m.color}">${m.title}（${m.zh}）</h3>
+      <div class="f">${m.formula}</div>
+      <p>${m.desc}</p>
+      <div class="rng">${m.range}</div></div>`;
+  });
+}
+
+// ===== TAB 2: 見底訊號狀態板 =====
+let SIG=null;
+const LIGHT_TXT={red:"未到",yellow:"接近",green:"觸發",bg:"背景",event:"事件"};
+const TYPE_TXT={calc:"自動計算",manual:"手動·週更",framework:"框架",event:"事件"};
+
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+function computeAuto(card){
+  const c=SIG.consts, p=DATA?.current?.btcPrice;
+  if(card.auto==="bearDuration"){
+    const top=new Date(c.topDate+"T00:00:00Z");
+    const w=Math.floor(daysBetween(top,new Date())/7);
+    const sig = w<45?"red":(w<=55?"yellow":"green");
+    return {value:`${w} 週 / 目標 50–60 週`, signal:sig};
+  }
+  if(card.auto==="ytdRoi"){
+    if(!p) return {value:"—",signal:"red"};
+    const roi=(p-c.yearlyOpen)/c.yearlyOpen*100;
+    const sig = roi>-22?"red":(roi>-42?"yellow":"green");
+    return {value:`${roi.toFixed(1)}%（年初開盤 $${(c.yearlyOpen/1000).toFixed(1)}k）`, signal:sig};
+  }
+  if(card.auto==="apathy"){
+    if(!p) return {value:"—",signal:"bg"};
+    const dd=(p-c.ath)/c.ath*100;
+    return {value:`${dd.toFixed(0)}% from ATH $${(c.ath/1000)}k · apathy top`, signal:"bg"};
+  }
+  return {};
+}
+
+async function loadTab2(){
+  if(SIG) return;
+  try{ SIG=await fetch("tab2_signals.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json()); }
+  catch(e){ document.getElementById("signals").innerHTML="<p style='color:var(--mut)'>tab2_signals.json 讀取失敗</p>"; return; }
+  // count bottom-signal lights
+  let r=0,y=0,g=0;
+  const cards=SIG.cards.map(c=>{
+    let val=c.value, sig=c.signal;
+    if(c.auto){ const a=computeAuto(c); val=a.value; sig=a.signal; }
+    if(c.signalType==="bottom"){ if(sig==="red")r++; else if(sig==="yellow")y++; else if(sig==="green")g++; }
+    const light = c.signalType==="event"?"event":(c.signalType==="bg"?"bg":sig);
+    return {...c, _val:val, _light:light};
+  });
+  document.getElementById("synth").innerHTML=
+    `<div class="h">綜合見底訊號（共 ${r+y+g} 盞見底燈）· 更新 ${SIG.updated}</div>
+     <div class="tally"><span style="color:var(--green)">🟢 觸發 ${g}</span> ·
+       <span style="color:var(--amber)">🟡 接近 ${y}</span> ·
+       <span style="color:var(--red)">🔴 未到 ${r}</span></div>
+     <p>${SIG.synthesis}</p>`;
+  document.getElementById("signals").innerHTML=cards.map(c=>`
+    <div class="sig">
+      <div class="top">
+        <div class="nm">${c.name}<small>${c.zh} · ${TYPE_TXT[c.type]||c.type}</small></div>
+        <div class="light L-${c._light}" title="${LIGHT_TXT[c._light]}"></div>
+      </div>
+      <div class="val">${c._val||"—"}</div>
+      <div class="pl">${c.plain}</div>
+      <div class="ft"><span class="tg ${c.type}">${TYPE_TXT[c.type]||c.type}</span><span>${c.updated||""}</span></div>
+    </div>`).join("");
+}
+
+// tab switch
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  if(t.dataset.tab==="tab2") loadTab2();
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");
+  document.getElementById("tab-core").style.display = t.dataset.tab==="core"?"":"none";
+  document.getElementById("tab-tab2").style.display = t.dataset.tab==="tab2"?"":"none";
+});
+// range switch
+document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".rb").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); RANGE=+b.dataset.range; ORDER.forEach(drawChart);
+});
+
+load();
+</script>
+</body>
+</html>

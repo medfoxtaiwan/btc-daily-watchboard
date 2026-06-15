@@ -1,0 +1,5 @@
+logs/
+__pycache__/
+*.png
+.playwright-mcp/
+.DS_Store
