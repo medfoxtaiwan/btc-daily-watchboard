@@ -12,7 +12,7 @@ Cowen Risk Metric 為 ITC 會員專屬、無公開 API → 由 cowen_risk_manual
 
 Usage: python3 fetch_data.py
 """
-import json, sys, time, urllib.request, pathlib
+import json, sys, time, math, urllib.request, pathlib
 from datetime import datetime, timezone
 
 HERE = pathlib.Path(__file__).resolve().parent
@@ -77,9 +77,12 @@ def main():
             if d is None or v in (None, ""):
                 continue
             try:
-                pts.append({"d": d, "v": round(float(v), 4)})
+                fv = float(v)
             except (TypeError, ValueError):
                 continue
+            if not math.isfinite(fv):   # 跳過 NaN / Inf（API 偶發壞點，否則寫出非法 JSON）
+                continue
+            pts.append({"d": d, "v": round(fv, 4)})
         pts.sort(key=lambda x: x["d"])
         pts = pts[-KEEP_DAYS:]
         series[key] = pts
@@ -100,7 +103,7 @@ def main():
         "current": current,
         "changes": changes,
     }
-    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2))
+    OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2, allow_nan=False))
     logmsg(f"[main] OK — data_through={data_through}, {len(series)} series x {KEEP_DAYS}d")
 
 if __name__ == "__main__":
