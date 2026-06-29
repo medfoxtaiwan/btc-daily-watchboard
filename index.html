@@ -82,6 +82,11 @@
   .L-red{background:var(--red);color:var(--red)} .L-yellow{background:var(--amber);color:var(--amber)}
   .L-green{background:var(--green);color:var(--green)} .L-bg{background:#6b7280;color:#6b7280}
   .L-event{background:var(--blue);color:var(--blue)}
+  /* tab3 ladder */
+  .lad-banner{background:#1a1206;border:1px solid #5a3f17;color:var(--amber);border-radius:8px;padding:9px 13px;font-size:12px;margin-bottom:12px;line-height:1.5}
+  .lad-input{background:#0d1320;border:1px solid var(--line);color:var(--txt);border-radius:5px;padding:2px 6px;font-size:12px;font-variant-numeric:tabular-nums}
+  .lad-here{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .sig .ft label{cursor:pointer}
   footer{padding:14px 20px;border-top:1px solid var(--line);font-size:11px;color:var(--mut);text-align:center}
   @media(max-width:820px){
     .cards{grid-template-columns:repeat(2,1fr)}
@@ -103,7 +108,8 @@
 
 <div class="tabs">
   <div class="tab active" data-tab="core">核心指標</div>
-  <div class="tab" data-tab="tab2">Tab 2（規劃中）</div>
+  <div class="tab" data-tab="tab2">見底訊號板</div>
+  <div class="tab" data-tab="ladder">階梯建倉</div>
 </div>
 
 <!-- ============ TAB 1 ============ -->
@@ -135,9 +141,26 @@
   <div class="signals" id="signals"></div>
 </div>
 
+<!-- ============ TAB 3 — 階梯建倉計畫 ============ -->
+<div class="wrap" id="tab-ladder" style="display:none">
+  <div class="synth" id="lad-synth"></div>
+  <div class="lad-banner">鐵則：零槓桿 · 只用餘裕資金 · 規則非信念 · 地板被跌穿＝升檔加碼（非恐慌） · 預算＝部位上限（身弱不勝財）</div>
+  <div class="rangebar" style="margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <label style="font-size:12px;color:var(--mut)">總預算 (USD)
+      <input type="number" id="lad-budget" class="lad-input" style="width:120px"></label>
+    <button class="rb" id="lad-add">＋ 新增檔位</button>
+    <button class="rb" id="lad-reset">重設預設</button>
+  </div>
+  <div class="signals" id="lad-cards"></div>
+  <p style="font-size:11px;color:var(--mut);margin-top:12px;line-height:1.7">
+    觸發條件即時對照 Cowen Risk / BTC÷RP / BTC÷BP / MVRV-Z（皆來自核心分頁資料）。Risk 為手動口徑、稀疏；其餘每日更新。
+    「已買」為手動打勾＝你的執行紀錄。設定存於本機瀏覽器（localStorage），不上傳。<b>非投資建議。</b></p>
+</div>
+
 <footer>
-  Cowen Risk Metric 為 ITC 會員專屬指標、無公開 API，採手動維護其官方口徑值（非每日）。其餘三指標每日自動更新。<br>
-  數據僅供研究參考，非投資建議。
+  RP / BP / MVRV-Z / Mayer 來自 bitcoin-data.com（每日）；200W MA / Pi Cycle 由 Bitstamp 日收盤自算；BTC.D 來自 CoinGecko（自部署日逐日累積）。<br>
+  Cowen Risk Metric 為 ITC 會員專屬、無公開 API，採手動官方口徑值（非每日）。BP 為 Glassnode 公式，≠ Cowen 口徑。<br>
+  數據僅供研究參考，<b>非投資建議</b>。
 </footer>
 
 <script>
@@ -152,7 +175,7 @@ const META = {
     title:"Balance Price", zh:"平衡價格", unit:"$", color:"#a371f7",
     formula:"Balance Price = Realized Price − Transferred Price",
     desc:"『已付出成本（RP）− 已花掉成本（Transferred Price）= 淨持有成本』，是更深的一道地板。",
-    range:"歷史<b>最深</b>熊市低點（2011/2015/2018/2020）才會觸及 BP。<span class='warn'>⚠ 本源算出 ~$28.8k；Cowen 口徑曾講 ~$39–40k，方法/來源不同 [verify]</span>。"
+    range:"歷史<b>最深</b>熊市低點（2011/2015/2018/2020）才會觸及 BP。<span class='warn'>⚠ Glassnode公式 ~$28.8k ≠ Cowen口徑 ~$39–40k（方法/來源不同，勿混用）</span>。"
   },
   mvrvZscore: {
     title:"MVRV Z-Score", zh:"市值/實現值 Z 分數", unit:"", color:"var(--green)",
@@ -165,26 +188,54 @@ const META = {
     formula:"專屬：價格相對長期對數迴歸 + diminishing returns，normalize 0–1（官方算法未公開）",
     desc:"0 = 極度低估（買），1 = 極度高估（賣）。本輪 Cowen：buy ≤0.3 / hold 0.3–0.6 / sell >0.6。",
     range:"<span class='warn'>⚠ 手動維護官方口徑值、非每日</span>。最新 <b>0.296</b>（6/14『just below 0.3』）→ 剛進買進區。"
+  },
+  mayerMultiple: {
+    title:"Mayer Multiple", zh:"Mayer 倍數", unit:"", color:"#d29922",
+    formula:"Mayer = BTC Price ÷ 200-Day MA",
+    desc:"現價相對 200 日均線的倍數，經典超買/超賣與估值指標。",
+    range:"<b>&lt;1.0</b> 歷史強力累積區｜<b>1.0–2.4</b> 中性｜<b>≥2.4</b> 歷史頂部區。<span class='warn'>200DMA 採 bitcoin-data.com 口徑，與交易所可能差 ~1%</span>。"
+  },
+  ma200w: {
+    title:"200-Week MA", zh:"200 週均線", unit:"$", color:"#58a6ff",
+    formula:"200W MA = mean(過去 1400 日收盤)",
+    desc:"BTC 最經典的長期牛熊分界 / 大底支撐線（Bull Market Support 下沿）。",
+    range:"歷史每輪熊市低點都在 <b>200W MA 附近或下方</b>短暫打轉；現價 ÷ 200W MA 越低越接近長期大底。<span class='warn'>採 Bitstamp 單一交易所收盤計算</span>。"
+  },
+  piCycle: {
+    title:"Pi Cycle Top", zh:"派週期頂 (111/350×2)", unit:"", color:"#a371f7",
+    formula:"ratio = 111DMA ÷ (350DMA × 2)；ratio ≥ 1 = 觸發頂訊號",
+    desc:"歷史多次精準抓到牛市頂（111 日均線上穿 350 日均線×2）。熊市/底部期遠低於 1。",
+    range:"<b>ratio → 1</b> 接近頂、<b>≥1</b> 觸發（2013/2017/2021 命中）；熊市底 ratio 遠低於 1＝離頂很遠。<span class='warn'>採 Bitstamp 收盤計算</span>。"
+  },
+  btcDominance: {
+    title:"BTC Dominance", zh:"BTC 市佔率", unit:"%", color:"#3fb950",
+    formula:"BTC.D = BTC 市值 ÷ 全加密市值 × 100",
+    desc:"BTC 佔整體加密市值比例。BTC.D 下行 = 資金轉向山寨（alt season）。",
+    range:"context 指標（非見底訊號）。<span class='warn'>歷史自部署日起逐日累積（CoinGecko 免費版無歷史 dominance），早期點少屬正常</span>。"
   }
 };
-const ORDER = ["realizedPrice","balancedPrice","mvrvZscore","cowenRisk"];
-let DATA=null, RISK=null, RANGE=7, charts={};
+const ORDER = ["realizedPrice","balancedPrice","mvrvZscore","cowenRisk","mayerMultiple","ma200w","piCycle","btcDominance"];
+let DATA=null, RISK=null, DOMH=null, RANGE=7, charts={};
 
 function fmt(v,unit){
   if(v==null) return "—";
   if(unit==="$") return "$"+Math.round(v).toLocaleString();
+  if(unit==="%") return (+v).toFixed(2)+"%";
   return (+v).toFixed(3);
 }
 function zoneColor(key,v){
   if(v==null) return "var(--mut)";
   if(key==="mvrvZscore") return v<0.5?"var(--green)":v<2?"var(--blue)":v<7?"var(--amber)":"var(--red)";
   if(key==="cowenRisk")  return v<0.3?"var(--green)":v<0.6?"var(--amber)":"var(--red)";
+  if(key==="mayerMultiple") return v<1?"var(--green)":v<2.4?"var(--blue)":"var(--red)";
+  if(key==="piCycle")    return v<0.5?"var(--green)":v<0.8?"var(--blue)":v<1?"var(--amber)":"var(--red)";
   return META[key].color;
 }
 
 async function load(){
   DATA = await fetch("data.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json());
   try{ RISK = await fetch("cowen_risk_manual.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json()); }catch(e){ RISK={points:[]}; }
+  try{ DOMH = await fetch("dominance_history.json?_="+Math.floor(Date.now()/3.6e6)).then(r=>r.json()); }catch(e){ DOMH={points:[]}; }
   document.getElementById("through").textContent = DATA.data_through || "—";
   document.getElementById("btcprice").textContent = fmt(DATA.current?.btcPrice,"$");
   if(DATA.seed) document.getElementById("seedbadge").style.display="inline-block";
@@ -193,10 +244,16 @@ async function load(){
 
 function curVal(key){
   if(key==="cowenRisk") return RISK?.points?.length? RISK.points[RISK.points.length-1].v : null;
+  if(key==="btcDominance") return DATA.current?.btcDominance ?? (DOMH?.points?.length? DOMH.points[DOMH.points.length-1].v : null);
+  if(key==="ma200w") return DATA.derived?.ma200w?.current ?? null;
+  if(key==="piCycle") return DATA.derived?.piCycle?.ratio ?? null;
   return DATA.current?.[key];
 }
 function series(key){
   if(key==="cowenRisk") return (RISK?.points||[]).map(p=>({d:p.d,v:p.v}));
+  if(key==="btcDominance") return (DOMH?.points||[]).map(p=>({d:p.d,v:p.v}));
+  if(key==="ma200w") return DATA.derived?.ma200w?.series||[];
+  if(key==="piCycle") return DATA.derived?.piCycle?.series_ratio||[];
   return DATA.series?.[key]||[];
 }
 
@@ -207,8 +264,13 @@ function renderCards(){
     let sub="";
     if(key==="realizedPrice"||key==="balancedPrice"){
       const r=DATA.current?.btcPrice; if(r&&v) sub=`BTC 為其 ${(r/v).toFixed(2)}×`;
+      if(key==="balancedPrice") sub += ` · <span class="warn">⚠ 公版≠Cowen口徑</span>`;
     } else if(key==="mvrvZscore"){ sub = v<0.5?"偏低區":v<2?"修正中段":v<7?"偏高":"狂熱頂"; }
     else if(key==="cowenRisk"){ sub = "手動 · 6/14 官方口徑"; }
+    else if(key==="mayerMultiple"){ sub = v==null?"—":v<1?"< 1 · 歷史累積區":v<2.4?"中性":"≥2.4 頂部區"; }
+    else if(key==="ma200w"){ const r=DATA.current?.btcPrice; sub = v==null?"完整歷史待補齊":(r?`BTC 為其 ${(r/v).toFixed(2)}×`:""); }
+    else if(key==="piCycle"){ const t=DATA.derived?.piCycle?.triggered; sub = v==null?"—":(t?"⚠ 已觸發（頂訊號）":`離頂 ratio ${v.toFixed(3)} → 1 接近頂`); }
+    else if(key==="btcDominance"){ sub = v==null?"—":"山寨季看 BTC.D 下行"; }
     el.innerHTML+=`<div class="card"><div class="stripe" style="background:${col}"></div>
       <div class="name"><span>${m.title}</span><span class="pill" style="color:${col}">${m.zh}</span></div>
       <div class="val" style="color:${col}">${fmt(v,m.unit)}</div>
@@ -314,13 +376,115 @@ async function loadTab2(){
     </div>`).join("");
 }
 
-// tab switch
+// ===== TAB 3: 階梯建倉計畫（便宜度加權、即時觸發）=====
+const LADDER_DEFAULT = {
+  budget:10000, currency:"USD", reserveTranches:2,
+  tranches:[
+    {id:"t1",label:"進場一",        metric:"risk",        op:"<=", x:0.30, weight:10},
+    {id:"t2",label:"加碼二",        metric:"risk",        op:"<=", x:0.25, weight:12},
+    {id:"t3",label:"加碼三",        metric:"risk",        op:"<=", x:0.20, weight:15},
+    {id:"t4",label:"跌破 RP",       metric:"priceOverRP", op:"<=", x:1.00, weight:18},
+    {id:"t5",label:"深跌 RP",       metric:"priceOverRP", op:"<=", x:0.90, weight:20},
+    {id:"t6",label:"乾火藥 A",      metric:"priceOverBP", op:"<=", x:1.15, weight:12, reserve:true},
+    {id:"t7",label:"乾火藥 B(破BP)", metric:"priceOverBP", op:"<=", x:1.00, weight:13, reserve:true}
+  ]
+};
+const METRIC_LABEL={risk:"Cowen Risk",priceOverRP:"BTC÷RP",priceOverBP:"BTC÷BP",mvrvz:"MVRV-Z",priceAbs:"BTC 價"};
+let LADDER=null, DONE={}, ladderWired=false;
+
+function loadLadderState(){
+  try{ const s=localStorage.getItem("ladderPlan"); LADDER = s?JSON.parse(s):JSON.parse(JSON.stringify(LADDER_DEFAULT)); }
+  catch(e){ LADDER=JSON.parse(JSON.stringify(LADDER_DEFAULT)); }
+  try{ DONE=JSON.parse(localStorage.getItem("ladderDone")||"{}"); }catch(e){ DONE={}; }
+}
+function saveLadder(){ try{ localStorage.setItem("ladderPlan",JSON.stringify(LADDER)); }catch(e){} }
+function saveDone(){ try{ localStorage.setItem("ladderDone",JSON.stringify(DONE)); }catch(e){} }
+
+function liveMetric(metric){
+  const p=DATA?.current?.btcPrice, rp=DATA?.current?.realizedPrice,
+        bp=DATA?.current?.balancedPrice, z=DATA?.current?.mvrvZscore,
+        risk=RISK?.points?.length? RISK.points[RISK.points.length-1].v : null;
+  switch(metric){
+    case "risk": return risk;
+    case "priceOverRP": return (p&&rp)? p/rp : null;
+    case "priceOverBP": return (p&&bp)? p/bp : null;
+    case "mvrvz": return z;
+    case "priceAbs": return p;
+    default: return null;
+  }
+}
+function evalTranche(t){
+  const m=liveMetric(t.metric);
+  if(m==null) return {state:"pending",m:null};
+  const hit = t.op==="<=" ? m<=t.x : m>=t.x;
+  const near = !hit && Math.abs(m-t.x)/Math.abs(t.x||1) <= 0.05;
+  return {state: hit?"actionable":(near?"near":"pending"), m};
+}
+
+function loadLadder(){
+  loadLadderState();
+  if(!ladderWired){
+    document.getElementById("lad-budget").oninput=e=>{ LADDER.budget=+e.target.value||0; saveLadder(); renderLadder(); };
+    document.getElementById("lad-reset").onclick=()=>{ LADDER=JSON.parse(JSON.stringify(LADDER_DEFAULT)); DONE={}; saveLadder(); saveDone();
+      document.getElementById("lad-budget").value=LADDER.budget; renderLadder(); };
+    document.getElementById("lad-add").onclick=()=>{ LADDER.tranches.push({id:"t"+Date.now(),label:"新檔位",metric:"priceOverRP",op:"<=",x:1.0,weight:10}); saveLadder(); renderLadder(); };
+    ladderWired=true;
+  }
+  document.getElementById("lad-budget").value=LADDER.budget;
+  renderLadder();
+}
+
+function renderLadder(){
+  const sumW=LADDER.tranches.reduce((a,t)=>a+(+t.weight||0),0)||1;
+  let deployed=0, here=null;
+  const evals=LADDER.tranches.map(t=>{
+    const e=evalTranche(t);
+    if(e.state==="actionable" && !DONE[t.id]) here=t.id;   // deepest un-bought actionable = 你在這一檔
+    if(DONE[t.id]) deployed+=LADDER.budget*(+t.weight||0)/sumW;
+    return {t,e};
+  });
+  const hereT=LADDER.tranches.find(t=>t.id===here);
+  const rd=RISK?.points?.length? RISK.points[RISK.points.length-1].d : null;
+  document.getElementById("lad-synth").innerHTML=
+    `<div class="h">便宜度加權階梯建倉 · 預算 $${(LADDER.budget||0).toLocaleString()} USD${rd?` · Risk as-of ${rd}`:""}</div>
+     <div class="tally">目前可買：${hereT?`<span style="color:var(--green)">${hereT.label}</span>`:'<span style="color:var(--mut)">無（等待觸發）</span>'}
+       · 已部署 $${Math.round(deployed).toLocaleString()} (${(deployed/(LADDER.budget||1)*100).toFixed(0)}%)</div>
+     <p>規則觸發、非信念：指標達門檻才買；越便宜檔位金額越大；保留乾火藥接「地板被插針」的更低點。</p>`;
+  document.getElementById("lad-cards").innerHTML=evals.map(({t,e})=>{
+    const amt=LADDER.budget*(+t.weight||0)/sumW, wpct=(+t.weight||0)/sumW*100;
+    const lc=DONE[t.id]?"bg":(e.state==="actionable"?"green":e.state==="near"?"yellow":"red");
+    const stTxt=DONE[t.id]?"✅已買":(e.state==="actionable"?"🟢可買":e.state==="near"?"🟡接近":"⏳待觸發");
+    const isHere=t.id===here;
+    const mLive=e.m==null?"—":(+e.m).toFixed(3);
+    return `<div class="sig ${isHere?'lad-here':''}">
+      <div class="top">
+        <div class="nm">${t.label} ${t.reserve?'<small style="color:var(--blue)">乾火藥</small>':''}
+          <small>${METRIC_LABEL[t.metric]||t.metric} ${t.op}
+            <input class="lad-input lad-x" data-id="${t.id}" type="number" step="0.01" value="${t.x}" style="width:62px"></small></div>
+        <div class="light L-${lc}" title="${stTxt}"></div>
+      </div>
+      <div class="val">$${Math.round(amt).toLocaleString()}
+        <span style="font-size:11px;color:var(--mut)">權重 <input class="lad-input lad-w" data-id="${t.id}" type="number" value="${t.weight}" style="width:46px">／${wpct.toFixed(0)}%</span></div>
+      <div class="pl">即時值 ${mLive} ｜ ${stTxt}${isHere?' 👈 你在這一檔':''}</div>
+      <div class="ft"><label><input type="checkbox" class="lad-done" data-id="${t.id}" ${DONE[t.id]?'checked':''}> 已買</label>
+        <span class="lad-del" data-id="${t.id}" style="cursor:pointer;color:var(--red)">刪除</span></div>
+    </div>`;
+  }).join("");
+  document.querySelectorAll(".lad-x").forEach(i=>i.onchange=e=>{ const t=LADDER.tranches.find(x=>x.id===e.target.dataset.id); if(t){t.x=+e.target.value; saveLadder(); renderLadder();} });
+  document.querySelectorAll(".lad-w").forEach(i=>i.onchange=e=>{ const t=LADDER.tranches.find(x=>x.id===e.target.dataset.id); if(t){t.weight=+e.target.value; saveLadder(); renderLadder();} });
+  document.querySelectorAll(".lad-done").forEach(i=>i.onchange=e=>{ DONE[e.target.dataset.id]=e.target.checked; saveDone(); renderLadder(); });
+  document.querySelectorAll(".lad-del").forEach(i=>i.onclick=e=>{ LADDER.tranches=LADDER.tranches.filter(x=>x.id!==e.target.dataset.id); saveLadder(); renderLadder(); });
+}
+
+// tab switch (3 tabs)
+const TAB_PANELS={core:"tab-core",tab2:"tab-tab2",ladder:"tab-ladder"};
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
-  if(t.dataset.tab==="tab2") loadTab2();
+  const k=t.dataset.tab;
+  if(k==="tab2") loadTab2();
+  if(k==="ladder") loadLadder();
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
-  document.getElementById("tab-core").style.display = t.dataset.tab==="core"?"":"none";
-  document.getElementById("tab-tab2").style.display = t.dataset.tab==="tab2"?"":"none";
+  Object.entries(TAB_PANELS).forEach(([key,id])=>{ const e=document.getElementById(id); if(e) e.style.display = key===k?"":"none"; });
 });
 // range switch
 document.querySelectorAll(".rb").forEach(b=>b.onclick=()=>{
