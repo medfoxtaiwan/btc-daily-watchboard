@@ -236,9 +236,22 @@ def main():
         logmsg(f"[main] dominance 例外: {e}")
 
     data_through = max((s[-1]["d"] for s in series.values() if s), default=None)
+
+    # freshness：on-chain 正常落後約 2 天；> STALE_LAG_DAYS 視為過期（供前端 banner + daily.yml gate）
+    STALE_LAG_DAYS = 3
+    lag_days = None
+    if data_through:
+        try:
+            dt = datetime.strptime(data_through, "%Y-%m-%d").date()
+            lag_days = (datetime.now(timezone.utc).date() - dt).days
+        except Exception:
+            lag_days = None
+    stale = (lag_days is not None and lag_days > STALE_LAG_DAYS)
+
     out = {
         "data_through": data_through,
         "source": "bitcoin-data.com (free) + Bitstamp(200W/Pi) + CoinGecko(BTC.D)",
+        "freshness": {"lag_days": lag_days, "stale": stale, "threshold": STALE_LAG_DAYS},
         "series": series,
         "current": current,
         "changes": changes,
@@ -246,7 +259,9 @@ def main():
     if derived is not None:
         out["derived"] = derived
     OUT.write_text(json.dumps(out, ensure_ascii=False, indent=2, allow_nan=False))
-    logmsg(f"[main] OK — data_through={data_through}, {len(series)} series x {KEEP_DAYS}d"
+    if stale:
+        logmsg(f"::warning::資料已 {lag_days} 天未更新（>{STALE_LAG_DAYS}），上游可能限流/中斷")
+    logmsg(f"[main] OK — data_through={data_through} (lag={lag_days}d), {len(series)} series x {KEEP_DAYS}d"
            f", derived={'y' if derived else 'n'}, btcDom={current.get('btcDominance')}")
 
 if __name__ == "__main__":

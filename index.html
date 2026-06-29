@@ -20,6 +20,9 @@
   header h1 b{color:var(--accent)}
   .meta{font-size:12px;color:var(--mut)}
   .badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#3a2a12;color:var(--amber);border:1px solid #5a3f17}
+  .stalebar{padding:10px 20px;font-size:13px;font-weight:600;text-align:center;border-bottom:1px solid}
+  .stalebar.amber{background:#3a2a12;color:var(--amber);border-color:#5a3f17}
+  .stalebar.red{background:#3a1216;color:var(--red);border-color:#5a1f24}
   .btc{font-size:12px;color:var(--mut)} .btc b{color:var(--txt)}
   /* tabs */
   .tabs{display:flex;gap:4px;padding:10px 16px 0}
@@ -105,6 +108,8 @@
   <span class="meta">資料截至 <b id="through">—</b> · 來源 bitcoin-data.com</span>
   <span class="badge" id="seedbadge" style="display:none">SEED · 完整歷史待每日抓取補齊</span>
 </header>
+
+<div class="stalebar" id="stalebar" style="display:none"></div>
 
 <div class="tabs">
   <div class="tab active" data-tab="core">核心指標</div>
@@ -239,7 +244,25 @@ async function load(){
   document.getElementById("through").textContent = DATA.data_through || "—";
   document.getElementById("btcprice").textContent = fmt(DATA.current?.btcPrice,"$");
   if(DATA.seed) document.getElementById("seedbadge").style.display="inline-block";
+  renderStaleBar();
   renderCards(); renderCharts(); renderInterp();
+}
+
+function daysSinceUTC(dateStr){
+  if(!dateStr) return null;
+  const d=new Date(dateStr+"T00:00:00Z"); if(isNaN(d)) return null;
+  const n=new Date(), todayUTC=Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),n.getUTCDate());
+  return Math.round((todayUTC-d.getTime())/86400000);
+}
+function renderStaleBar(){
+  const bar=document.getElementById("stalebar");
+  const dt=DATA?.data_through, lag=daysSinceUTC(dt);
+  const TH=DATA?.freshness?.threshold ?? 3;
+  if(lag==null || lag<=TH){ bar.style.display="none"; return; }
+  const dStale=DATA?.derived?.stale ? "；200W MA / Pi Cycle 為沿用值" : "";
+  bar.className="stalebar "+(lag>6?"red":"amber");
+  bar.innerHTML=`⚠ 資料停留於 <b>${dt}</b>（已 ${lag} 天未更新，正常約 2 天）——可能上游限流/中斷，顯示值可能過期${dStale}`;
+  bar.style.display="block";
 }
 
 function curVal(key){

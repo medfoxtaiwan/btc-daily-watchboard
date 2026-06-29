@@ -29,3 +29,18 @@ jobs:
             git commit -m "chore: daily data update ($(date -u +%Y-%m-%d))"
             git push
           fi
+      - name: Freshness gate (job red if data stale)
+        run: |
+          python3 - <<'PY'
+          import json, datetime
+          d = json.load(open("data.json"))
+          dt = d.get("data_through")
+          if not dt:
+              print("::error::data_through 缺失"); raise SystemExit(1)
+          lag = (datetime.date.today() - datetime.date.fromisoformat(dt)).days
+          print(f"data_through={dt}, lag={lag}d (on-chain 正常約 2 天)")
+          if lag > 3:
+              print(f"::error::STALE — 資料已 {lag} 天未更新（>3）。上游(bitcoin-data)可能限流/中斷，看板顯示值已過期。")
+              raise SystemExit(1)
+          print("freshness OK")
+          PY
