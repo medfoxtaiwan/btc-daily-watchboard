@@ -1,12 +1,13 @@
 {
   "data_through": "2026-06-28",
   "source": "bitcoin-data.com (free) + Bitstamp(200W/Pi) + CoinGecko(BTC.D)",
+  "freshness": {
+    "lag_days": 1,
+    "stale": false,
+    "threshold": 3
+  },
   "series": {
     "btcPrice": [
-      {
-        "d": "2026-02-28",
-        "v": 66965.6353
-      },
       {
         "d": "2026-03-01",
         "v": 65733.5213
@@ -482,6 +483,10 @@
       {
         "d": "2026-06-27",
         "v": 59955.566
+      },
+      {
+        "d": "2026-06-28",
+        "v": 59516.6737
       }
     ],
     "realizedPrice": [
@@ -2414,7 +2419,7 @@
     ]
   },
   "current": {
-    "btcPrice": 59955.566,
+    "btcPrice": 59516.6737,
     "realizedPrice": 52799.27,
     "balancedPrice": 28669.45,
     "mvrvZscore": 0.2399,
@@ -2423,9 +2428,9 @@
   },
   "changes": {
     "btcPrice": {
-      "1wk": -6.64,
-      "1mo": -18.43,
-      "3mo": -9.11
+      "1wk": -6.07,
+      "1mo": -18.83,
+      "3mo": -10.7
     },
     "realizedPrice": {
       "1wk": -0.38,
@@ -2450,7 +2455,7 @@
   },
   "derived": {
     "ma200w": {
-      "current": 62442.05,
+      "current": 62441.96,
       "series": [
         {
           "d": "2026-03-02",
@@ -2930,13 +2935,13 @@
         },
         {
           "d": "2026-06-29",
-          "v": 62442.05
+          "v": 62441.96
         }
       ]
     },
     "piCycle": {
-      "ma111": 71432.35,
-      "ma350x2": 179946.11,
+      "ma111": 71431.16,
+      "ma350x2": 179945.35,
       "ratio": 0.397,
       "triggered": false,
       "series_ratio": [
