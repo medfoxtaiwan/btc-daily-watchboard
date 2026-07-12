@@ -165,8 +165,8 @@
 </div>
 
 <footer>
-  RP / BP / MVRV-Z / Mayer 來自 bitcoin-data.com（每日）；200W MA / Pi Cycle 由 Bitstamp 日收盤自算；BTC.D 來自 CoinGecko（自部署日逐日累積）。<br>
-  Cowen Risk Metric 為 ITC 會員專屬、無公開 API，採手動官方口徑值（非每日）。BP 為 Glassnode 公式，≠ Cowen 口徑。<br>
+  RP / CVDD / MVRV-Z / Mayer 來自 bitcoin-data.com（每日）；BP = RP − CVDD 自算（Puell 口徑，≈ Cowen/checkonchain ~$38–39k）；200W MA / Pi Cycle 由 Bitstamp 日收盤自算；BTC.D 來自 CoinGecko（自部署日逐日累積）。<br>
+  Cowen Risk Metric 為 ITC 會員專屬、無公開 API，採手動官方口徑值（非每日）。bitcoin-data 原生 balanced-price 端點已棄用（口徑不明）。<br>
   數據僅供研究參考，<b>非投資建議</b>。
 </footer>
 
@@ -178,11 +178,11 @@ const META = {
     desc:"全網平均買入成本（每枚幣以最後一次鏈上移動時的價格計值後加總，再除以流通量）。",
     range:"市價 <b>></b> RP → 全網平均賺錢；市價 <b><</b> RP → 平均虧損。歷史每次 cycle bottom（2011/14/18/20/22）<b>都曾跌破 RP</b>。Cowen：見底『之前』通常會破一次。"
   },
-  balancedPrice: {
-    title:"Balance Price", zh:"平衡價格", unit:"$", color:"#a371f7",
-    formula:"Balance Price = Realized Price − Transferred Price",
-    desc:"『已付出成本（RP）− 已花掉成本（Transferred Price）= 淨持有成本』，是更深的一道地板。",
-    range:"歷史<b>最深</b>熊市低點（2011/2015/2018/2020）才會觸及 BP。<span class='warn'>⚠ Glassnode公式 ~$28.8k ≠ Cowen口徑 ~$39–40k（方法/來源不同，勿混用）</span>。"
+  balancedPriceCowen: {
+    title:"Balance Price", zh:"平衡價格・Puell 口徑", unit:"$", color:"#a371f7",
+    formula:"Balance Price = Realized Price − CVDD（CVDD ≈ Transferred Price）",
+    desc:"『已付出成本（RP）− 已花掉成本 = 淨持有成本』，是比 RP 更深的一道地板。每日由 RP − CVDD 自算，與 Cowen / checkonchain 口徑一致（~$38–39k）。",
+    range:"歷史<b>最深</b>熊市低點（2011/2015/2018/2020）才會觸及 BP。<span class='warn'>bitcoin-data 原生 balanced-price 端點（~$28.6k）已棄用：其隱含 transferred ~$24k 與自家 CVDD ~$13.5k 不符、口徑不明</span>。"
   },
   mvrvZscore: {
     title:"MVRV Z-Score", zh:"市值/實現值 Z 分數", unit:"", color:"var(--green)",
@@ -221,7 +221,7 @@ const META = {
     range:"context 指標（非見底訊號）。<span class='warn'>歷史自部署日起逐日累積（CoinGecko 免費版無歷史 dominance），早期點少屬正常</span>。"
   }
 };
-const ORDER = ["realizedPrice","balancedPrice","mvrvZscore","cowenRisk","mayerMultiple","ma200w","piCycle","btcDominance"];
+const ORDER = ["realizedPrice","balancedPriceCowen","mvrvZscore","cowenRisk","mayerMultiple","ma200w","piCycle","btcDominance"];
 let DATA=null, RISK=null, DOMH=null, RANGE=7, charts={};
 
 function fmt(v,unit){
@@ -287,9 +287,9 @@ function renderCards(){
   ORDER.forEach(key=>{
     const v=curVal(key), m=META[key], col=zoneColor(key,v);
     let sub="";
-    if(key==="realizedPrice"||key==="balancedPrice"){
+    if(key==="realizedPrice"||key==="balancedPriceCowen"){
       const r=DATA.current?.btcPrice; if(r&&v) sub=`BTC 為其 ${(r/v).toFixed(2)}×`;
-      if(key==="balancedPrice") sub += ` · <span class="warn">⚠ 公版≠Cowen口徑</span>`;
+      if(key==="balancedPriceCowen") sub += ` · RP − CVDD 自算`;
     } else if(key==="mvrvZscore"){ sub = v<0.5?"偏低區":v<2?"修正中段":v<7?"偏高":"狂熱頂"; }
     else if(key==="cowenRisk"){ sub = "手動 · 6/14 官方口徑"; }
     else if(key==="mayerMultiple"){ sub = v==null?"—":v<1?"< 1 · 歷史累積區":v<2.4?"中性":"≥2.4 頂部區"; }
@@ -380,10 +380,10 @@ function computeAuto(card){
     return {value:`BTC ÷ RP = ${x.toFixed(2)}×（RP $${Math.round(rp/1000)}k）`, signal:sig};
   }
   if(card.auto==="priceOverCowenBP"){
-    const bp=c.cowenBP;
+    const live=DATA?.current?.balancedPriceCowen, bp=live ?? c.cowenBP;
     if(!p||!bp) return {value:"—",signal:"red"};
     const x=p/bp, sig = x<=1?"green":(x<=1.15?"yellow":"red");
-    return {value:`BTC ÷ BP = ${x.toFixed(2)}×（Cowen 口徑 $${Math.round(bp/1000)}k）`, signal:sig};
+    return {value:`BTC ÷ BP = ${x.toFixed(2)}×（BP $${(bp/1000).toFixed(1)}k${live?"・每日自算":"・fallback 口徑"}）`, signal:sig};
   }
   return {};
 }
@@ -453,7 +453,7 @@ function saveDone(){ try{ localStorage.setItem("ladderDone",JSON.stringify(DONE)
 
 function liveMetric(metric){
   const p=DATA?.current?.btcPrice, rp=DATA?.current?.realizedPrice,
-        bp=DATA?.current?.balancedPrice, z=DATA?.current?.mvrvZscore,
+        bp=DATA?.current?.balancedPriceCowen, z=DATA?.current?.mvrvZscore,
         risk=RISK?.points?.length? RISK.points[RISK.points.length-1].v : null;
   switch(metric){
     case "risk": return risk;

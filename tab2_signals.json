@@ -36,10 +36,10 @@
       "updated": "自動計算（每日）"
     },
     {
-      "key": "bpBreak", "name": "跌破 Balance Price", "zh": "洗底線 3・更深地板 ~$38k（貪心版）",
+      "key": "bpBreak", "name": "跌破 Balance Price", "zh": "洗底線 3・更深地板 ~$39k（貪心版）",
       "group": "B｜價格洗夠了嗎（三道檢查線）", "type": "calc", "signalType": "bottom", "auto": "priceOverCowenBP",
-      "plain": "比 RP 更深的一道地板，只有史上最慘的大底（2011/2015/2018/2020）才碰到。Cowen 自己說等這條『might be a little greedy（有點貪心）』＝理想加碼點而非必要條件——對應 Tab3 的乾火藥檔位。⚠ 本卡用 Cowen 口徑 $38k 計算（Glassnode 公版公式 ~$28.8k，口徑不同勿混用）。",
-      "updated": "7/10 Cowen 口徑 $38k"
+      "plain": "比 RP 更深的一道地板，只有史上最慘的大底（2011/2015/2018/2020）才碰到。Cowen 自己說等這條『might be a little greedy（有點貪心）』＝理想加碼點而非必要條件——對應 Tab3 的乾火藥檔位。BP 每日由 RP − CVDD 自算（Puell 口徑，與 Cowen 口播 ~$38k 一致；bitcoin-data 原生 balanced-price 端點口徑不明已棄用）。",
+      "updated": "自動計算（每日）"
     },
     {
       "key": "volumeSpike", "name": "Volume Spike at Bottom", "zh": "投降訊號 1・決定性爆量",

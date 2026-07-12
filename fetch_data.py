@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 """BTC Daily Watchboard — 每日抓取腳本.
 
-從 bitcoin-data.com 免費 API 抓 4 條序列 (realized price / balanced price /
-MVRV Z-score / BTC price)，輸出 data.json 供靜態頁讀取。
+從 bitcoin-data.com 免費 API 抓 5 條序列 (BTC price / realized price / CVDD /
+MVRV Z-score / Mayer Multiple)，並自算 balancedPriceCowen = RP − CVDD
+（Puell 口徑 Balance Price，與 Cowen/checkonchain ~$38-39k 一致），
+輸出 data.json 供靜態頁讀取。
+
+⚠ 原生 /v1/balanced-price 端點已棄用（2026-07-12 驗證：其隱含 transferred
+price ~$24k 與自家 CVDD ~$13.5k、Puell 定義皆不符，口徑不明）。
 
 免費版限流：每小時 10 次請求。本腳本一次只打 4 個端點 → 每日跑一次完全安全。
 失敗時不覆寫舊 data.json（保留上次成功快照）。
@@ -35,10 +40,19 @@ def logmsg(msg):
 ENDPOINTS = {
     "btcPrice":      ("https://bitcoin-data.com/v1/btc-price",       "btcPrice"),
     "realizedPrice": ("https://bitcoin-data.com/v1/realized-price",  "realizedPrice"),
-    "balancedPrice": ("https://bitcoin-data.com/v1/balanced-price",  "balancedPrice"),
+    "cvdd":          ("https://bitcoin-data.com/v1/cvdd",            "cvdd"),
     "mvrvZscore":    ("https://bitcoin-data.com/v1/mvrv-zscore",     "mvrvZscore"),
     "mayerMultiple": ("https://bitcoin-data.com/v1/mayer-multiple",  "mayerMultiple"),
 }
+
+def derive_bp_cowen(series):
+    """balancedPriceCowen = realizedPrice − CVDD，按日期 join（Puell 口徑 BP）。"""
+    rp = {p["d"]: p["v"] for p in series.get("realizedPrice", [])}
+    cv = {p["d"]: p["v"] for p in series.get("cvdd", [])}
+    pts = [{"d": d, "v": round(rp[d] - cv[d], 4)}
+           for d in sorted(rp.keys() & cv.keys())
+           if math.isfinite(rp[d] - cv[d])]
+    return pts[-KEEP_DAYS:]
 
 def fetch(url, retries=3):
     for i in range(retries):
@@ -208,6 +222,15 @@ def main():
     if not ok:
         logmsg("[main] FAIL — 有端點失敗（多半是 429 限流），保留舊快照不覆寫")
         sys.exit(1)
+
+    # --- 衍生序列：Puell 口徑 Balance Price = RP − CVDD ---
+    bp_pts = derive_bp_cowen(series)
+    if bp_pts:
+        series["balancedPriceCowen"] = bp_pts
+        current["balancedPriceCowen"] = bp_pts[-1]["v"]
+        changes["balancedPriceCowen"] = pct(bp_pts)
+    else:
+        logmsg("[main] balancedPriceCowen 跳過（RP/CVDD 日期無交集）")
 
     # --- 副來源（各自 try/except；失敗不阻擋核心 data.json 寫出）---
     derived = None
