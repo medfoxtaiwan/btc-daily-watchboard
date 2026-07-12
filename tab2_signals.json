@@ -1,88 +1,80 @@
 {
-  "updated": "2026-06-14",
-  "synthesis": "見底訊號開始點亮（supply 籌碼交叉已發生、熊市進入第三＝最後階段），但『時間走完』『YTD 跌幅』『籌碼痛感』『情緒極端』多數仍未觸發。Cowen base case 仍是 10 月見底、收斂 ~$48–58k；唯一提前翻多條件＝BTC 暴跌把鏈上指標全 reset 的 price-based capitulation。",
-  "consts": { "topDate": "2025-10-12", "yearlyOpen": 87500, "ath": 126000 },
+  "updated": "2026-07-12",
+  "synthesis": "如何確認底部（Cowen 口徑）＝三區同時亮：<b>A 時間到</b>（底部窗口 9 月底–10 月初、熊市走滿 ~50–60 週）＋ <b>B 價格洗夠</b>（MVRV-Z 跌破 0、跌破全網平均成本 ~$53k；$38k 屬貪心版）＋ <b>C 投降出現</b>（決定性爆量、情緒一面倒）。現況：時間未到（約第 39 週）、三道洗底線 0/3、投降訊號未現——7 月這波反彈是例行劇本（8–9 月歷史上全數吐回），不是反轉。Cowen 自評：60–65% 機率 11/21 前低點已 in；見底後接 2027 新一輪牛市。",
+  "consts": { "topDate": "2025-10-12", "yearlyOpen": 87500, "ath": 126000, "cowenBP": 38000 },
   "cards": [
     {
-      "key": "supplyCross", "name": "Supply in Profit/Loss 交叉", "zh": "賺錢/賠錢籌碼交叉",
-      "type": "manual", "signalType": "bottom", "signal": "yellow",
-      "value": "已交叉（6 月首次）",
-      "plain": "賺錢籌碼% 與賠錢籌碼% 兩條線交叉＝見底前置條件。歷史上『從不』在交叉當下立刻見底，交叉後 1–4 個月才到底（2014→3-4月、2018→1月、2022→交叉後再 uncross 才到）。",
-      "updated": "6/10 Cowen"
+      "key": "bottomWindow", "name": "底部時間窗（Day-count 鏡射）", "zh": "9 月底–10 月初",
+      "group": "A｜時間到了嗎", "type": "manual", "signalType": "bottom", "signal": "yellow",
+      "value": "late Sep–early Oct（最晚 12 月前）",
+      "plain": "Cowen 招牌算法：過去三輪從低點漲到頂各花 1,059/1,068/1,062 天，三次誤差不到一週、準得像時鐘 → 假設見底也照同一個時鐘走，鏡射出 9 月底–10 月初。7/10 首次給明示機率：<b>60–65% 機率 11/21（他辦 ITC 大會的主日）前低點已 in</b>——反過來說他自認有 35–40% 機率屆時還沒見底。",
+      "updated": "7/10 Cowen"
     },
     {
-      "key": "supplyLossPeak", "name": "Supply in Loss 峰值", "zh": "賠錢籌碼比例",
-      "type": "manual", "signalType": "bottom", "signal": "red",
-      "value": "~51%（歷史峰值 54–64%）",
-      "plain": "賠錢籌碼比例越高代表全網越痛。現在 51% 仍低於歷史 cycle 峰值（2011~54% / 2014~64% / 2018~60% / 2022~55%）→『還有空間』可以再痛一點，別太貪。",
-      "updated": "6/10 Cowen"
-    },
-    {
-      "key": "bearDuration", "name": "Bear Market Duration", "zh": "熊市持續週數",
-      "type": "calc", "signalType": "bottom", "auto": "bearDuration",
-      "plain": "歷史 mid-term 熊市約走 50–60 週（2018≈53、2022≈54、2014≈59）才見底。Cowen 6/14：『現在才約第 35 週』→ 時間還沒走完，這是他選 time-based capitulation 的核心依據。",
+      "key": "bearDuration", "name": "Bear Market Duration", "zh": "熊市時間走完了嗎",
+      "group": "A｜時間到了嗎", "type": "calc", "signalType": "bottom", "auto": "bearDuration",
+      "plain": "歷史 mid-term 熊市約走 50–60 週才見底（2018≈53、2022≈54、2014≈59）。現在約第 39 週 → 時間還沒走完。這是 Cowen 堅持 time-based（等時間走完，不猜單一價位）的核心依據；50 週落點恰為 9 月底＝與上面的時間窗互相印證。",
       "updated": "自動計算"
     },
     {
-      "key": "timeVsPrice", "name": "Time- vs Price-based Capitulation", "zh": "時間型 vs 價格型投降",
-      "type": "framework", "signalType": "bg",
-      "value": "現行：Time-based（等 10 月）",
-      "plain": "Cowen 選『等時間走完』而非『等某個價位』。pivot 到 price-based 的唯一條件＝BTC 暴跌（如再 −$20k）把所有鏈上指標全 reset（像 2020 疫情）。否則維持 time-based、base case 10 月。",
-      "updated": "6/14 Cowen"
+      "key": "squeeze", "name": "200W × BMR 夾擊攤牌", "zh": "均線夾心・被迫選邊",
+      "group": "A｜時間到了嗎", "type": "manual", "signalType": "bottom", "signal": "yellow",
+      "value": "攤牌 ~8–9 月啟動、Q4 出解",
+      "plain": "BTC 被夾在 200 週均線（下方支撐、破過又收回）與熊市阻力帶 BMR（上方壓力、持續下移）之間，空間越夾越窄，兩線相會＝被迫選邊突破。7/10：『they're going to meet soon…resolution 大約一兩個月內啟動』。2018 年同樣的夾擊最後向下破；配合 B 區三道線未洗完，Cowen 偏向還有最後一跌。",
+      "updated": "7/08+7/10 Cowen"
     },
     {
-      "key": "threeStage", "name": "3-Stage Bear Market", "zh": "熊市三階段（心理）",
-      "type": "framework", "signalType": "bottom", "signal": "yellow",
-      "value": "Stage 3（6→10 月，最後段）",
-      "plain": "照『相信熊市的人多寡』分三段、各約 4 個月：少數信(25/10–26/02)→半數信(26/02–26/06)→多數信(26/06–26/10)。現進入最後一段；當『everyone believes』時通常就是熊市終點。",
-      "updated": "6/7 Cowen"
+      "key": "mvrvZero", "name": "MVRV Z-Score 跌破 0", "zh": "洗底線 1・全網平均轉虧",
+      "group": "B｜價格洗夠了嗎（三道檢查線）", "type": "calc", "signalType": "bottom", "auto": "mvrvZero",
+      "plain": "白話：全市場的人平均賺還是賠、偏離平均成本幾個標準差。跌破 0 ＝平均人人虧損；歷史每個大底（2011/15/18/22）都痛到 <0 才算洗完（fully reset），且通常在 0 以下待數月而非一天。7/10 重申：『historically, it does go below zero…we haven't made it there yet』。",
+      "updated": "自動計算（每日）"
     },
     {
-      "key": "ytdRoi", "name": "Mid-term Year YTD ROI ±1σ", "zh": "期中年年初至今報酬",
-      "type": "calc", "signalType": "bottom", "auto": "ytdRoi",
-      "plain": "年初至今相對年初開盤(~$87.5k)的報酬。歷史 mid-term 此時平均約 −32%，±1σ 下緣約 −45%（指向 ~$50k）。Cowen：現在『跌幅跟歷史正常水位差不多』，不是異常崩盤。",
-      "updated": "自動計算"
+      "key": "rpBreak", "name": "跌破 Realized Price", "zh": "洗底線 2・全網平均成本 ~$53k",
+      "group": "B｜價格洗夠了嗎（三道檢查線）", "type": "calc", "signalType": "bottom", "auto": "priceOverRP",
+      "plain": "RP＝全網所有持幣者的平均買入成本（~$53k）。市價跌破它＝全市場平均套牢＝真正的痛。歷史上每個期中選舉年都跌破過（連 2019–20 那輪最後也破了）；Cowen：這次『很可能也會』。跌破後通常離底不遠、停留不久——所以這條線是「接近底部」的訊號而非恐慌理由。",
+      "updated": "自動計算（每日）"
     },
     {
-      "key": "apathy", "name": "Apathy vs Euphoric Top", "zh": "冷漠頂 vs 狂熱頂",
-      "type": "calc", "signalType": "bg", "auto": "apathy",
-      "plain": "本輪是『冷漠頂』：無最終狂熱、無資金輪動到山寨、散戶缺席、比 QT 結束早 2 個月見頂（對標 2019）。冷漠頂初跌僅約 35%，狂熱頂(2017)會跌 70%。這是『週期性質』分類，非見底燈。",
-      "updated": "6/6 Cowen"
+      "key": "bpBreak", "name": "跌破 Balance Price", "zh": "洗底線 3・更深地板 ~$38k（貪心版）",
+      "group": "B｜價格洗夠了嗎（三道檢查線）", "type": "calc", "signalType": "bottom", "auto": "priceOverCowenBP",
+      "plain": "比 RP 更深的一道地板，只有史上最慘的大底（2011/2015/2018/2020）才碰到。Cowen 自己說等這條『might be a little greedy（有點貪心）』＝理想加碼點而非必要條件——對應 Tab3 的乾火藥檔位。⚠ 本卡用 Cowen 口徑 $38k 計算（Glassnode 公版公式 ~$28.8k，口徑不同勿混用）。",
+      "updated": "7/10 Cowen 口徑 $38k"
     },
     {
-      "key": "twitterPoll", "name": "Twitter Sentiment Poll", "zh": "推特情緒投票（反指標）",
-      "type": "manual", "signalType": "bottom", "signal": "red",
+      "key": "volumeSpike", "name": "Volume Spike at Bottom", "zh": "投降訊號 1・決定性爆量",
+      "group": "C｜投降訊號出現了嗎", "type": "manual", "signalType": "bottom", "signal": "red",
+      "value": "尚未出現",
+      "plain": "熊市『收尾的必要條件』：2014/2018/2022 的底都伴隨一根撞牆式巨量＝最後的恐慌換手完成；連 2019 冷漠頂之後都有（2020 疫情那根）。7/10 重申本輪量能仍低迷、決定性 spike 缺席 → 最後的投降還沒發生、底未確認。",
+      "updated": "7/10 Cowen"
+    },
+    {
+      "key": "supplyCross", "name": "Supply in Profit/Loss 交叉", "zh": "投降訊號 2・籌碼痛感倒數",
+      "group": "C｜投降訊號出現了嗎", "type": "manual", "signalType": "bottom", "signal": "green",
+      "value": "已交叉（6 月）＝倒數已開始",
+      "plain": "賺錢籌碼% 與賠錢籌碼% 兩線交叉＝見底前置條件（不是底部本身）。歷史上交叉後 1–4 個月才真正到底：6 月交叉 → 指向 7–10 月，與 A 區時間窗收斂。這是目前唯一亮綠的燈——倒數計時器，不是買點鈴聲。",
+      "updated": "6/10 Cowen"
+    },
+    {
+      "key": "sentiment", "name": "情緒極端（反指標）", "zh": "投降訊號 3・一面倒才會錯",
+      "group": "C｜投降訊號出現了嗎", "type": "manual", "signalType": "bottom", "signal": "red",
       "value": "~60–65% 看空（門檻 75–80%）",
-      "plain": "Cowen 自用反指標：趨勢市中小幅多數方常是對的；只有當一方達 75–80% 一面倒，多數才通常會錯（反轉訊號）。現在僅 60–65% 看空 → 還沒到情緒極端、未到底。",
+      "plain": "Cowen 自用反指標：趨勢市中小幅多數方常是對的；只有當一方達 75–80% 一面倒，群眾才通常會錯＝反轉近了。現在只有六成多看空 → 情緒還不夠絕望。⚠ 6/7 口徑、近期未更新，等 Cowen 新投票。",
       "updated": "6/7 Cowen"
     },
     {
-      "key": "volumeSpike", "name": "Volume Spike at Bottom", "zh": "底部爆量",
-      "type": "manual", "signalType": "bottom", "signal": "red",
-      "value": "尚未出現決定性爆量",
-      "plain": "熊市結束前成交量常『撞牆式爆量』（2018 有、2014 較小）。唯一例外是冷漠後(2019)的爆量出現在 2020 疫情。目前尚未出現這種決定性 spike。",
-      "updated": "6/14 Cowen"
+      "key": "framework", "name": "現在在劇本哪裡？", "zh": "冷漠頂・熊市第三段・等時間",
+      "group": "D｜背景劇本（非見底燈）", "type": "framework", "signalType": "bg",
+      "value": "Stage 3（6→10 月）· time-based",
+      "plain": "本輪是『冷漠頂』（$126k 見頂無狂熱、無山寨輪動，對標 2019；散戶熱度只剩 2021 的十分之一）；熊市三段心理已進最後一段（多數人相信熊市）。策略＝time-based：時間到了才有底，不猜單一價位；唯一提前翻多條件＝暴跌把 B 區三道線一次全 reset（2020 式 price-based capitulation）。",
+      "updated": "7/10 Cowen"
     },
     {
-      "key": "bojCatalyst", "name": "BoJ / Fed Rate Catalyst", "zh": "日本央行/Fed 升息催化",
-      "type": "event", "signalType": "event",
-      "value": "下次 FOMC + BoJ：6/17 前後",
-      "plain": "日本央行升息→套利交易(carry trade)平倉→拖累加密。前例：2024-08 BTC capitulation 正是 BoJ 2024-07 升息『後一週』。6/17 前後 Fed＋BoJ 會議是近期催化窗。",
-      "updated": "6/5 Cowen"
-    },
-    {
-      "key": "dynamicDca", "name": "Dynamic DCA / Best Day", "zh": "風險加權定額 / 最佳定額日",
-      "type": "framework", "signalType": "bg",
-      "value": "現 risk 0.296 → 買進區（週一最佳）",
-      "plain": "操作方法：用 Risk Metric(0–1) 決定每次買多少，越低買越多；本輪 buy ≤0.3 / hold 0.3–0.6 / sell >0.6。最佳定額日＝週一（最不追高）。現值 0.296 已在買進區。",
-      "updated": "6/14 Cowen"
-    },
-    {
-      "key": "logRegression", "name": "Log Regression Fair Value", "zh": "對數迴歸合理價值",
-      "type": "manual", "signalType": "bottom", "signal": "red",
-      "value": "今年整年在線下",
-      "plain": "長線『合理價值』趨勢線（單調遞增）。本輪像 2019：衝上線後 fade 回落，BTC『今年大概整年待在合理價值線下方』，要 2027 才 back in business。在線下＝偏低，但本身非見底觸發訊號。",
-      "updated": "6/9 Cowen"
+      "key": "julyRally", "name": "7 月反彈 ≠ 反轉", "zh": "例行 window of strength・勿追高",
+      "group": "D｜背景劇本（非見底燈）", "type": "framework", "signalType": "bg",
+      "value": "劇本：7 月漲 → 8–9 月吐回",
+      "plain": "期中年 7 月平均 +9%（±15–16%，Cowen 自承不顯著）＝例行喘息；但 2014/2018/2022 的 8、9 月<b>全數收黑</b>＝漲多少吐多少，2018 連反彈後的 higher low 都在 8 月被 sweep。反彈天花板＝200 日均線（現 ~$74k、8 月中降至 ~$70k）。確認真反轉的唯一訊號＝拉回後守住 higher low；在那之前 falling knife until proven otherwise。",
+      "updated": "7/06–7/10 Cowen"
     }
   ]
 }
