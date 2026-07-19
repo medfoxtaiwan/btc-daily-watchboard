@@ -368,10 +368,12 @@ function computeAuto(card){
     return {value:`${dd.toFixed(0)}% from ATH $${(c.ath/1000)}k · apathy top`, signal:"bg"};
   }
   if(card.auto==="mvrvZero"){
-    const z=DATA?.current?.mvrvZscore;
-    if(z==null) return {value:"—",signal:"red"};
-    const sig = z<0?"green":(z<0.3?"yellow":"red");
-    return {value:`Z = ${(+z).toFixed(3)}（門檻 < 0）`, signal:sig};
+    // MVRV-Z<0 ⟺ 現價<RP（同一零交叉，源無關）→ 燈號改由 BTC÷RP 驅動，不採計 Z 幅度（各源不同）
+    const z=DATA?.current?.mvrvZscore, rp=DATA?.current?.realizedPrice;
+    if(!p||!rp) return {value:"—",signal:"red"};
+    const x=p/rp, sig = x<=1?"green":(x<=1.2?"yellow":"red");
+    const zt = (z==null)?"" : `・Z ${(+z).toFixed(2)}(bd口徑)`;
+    return {value:`穿 0 ⟺ 跌破 RP・現 BTC÷RP ${x.toFixed(2)}×${zt}`, signal:sig};
   }
   if(card.auto==="priceOverRP"){
     const rp=DATA?.current?.realizedPrice;
