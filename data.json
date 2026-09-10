@@ -486,7 +486,7 @@
       },
       {
         "d": "2026-09-09",
-        "v": 78163.34
+        "v": 78207.4846
       }
     ],
     "realizedPrice": [
@@ -2901,7 +2901,7 @@
     ]
   },
   "current": {
-    "btcPrice": 78163.34,
+    "btcPrice": 78207.4846,
     "realizedPrice": 52794.62,
     "cvdd": 13774.74,
     "mvrvZscore": 0.8495,
@@ -2911,9 +2911,9 @@
   },
   "changes": {
     "btcPrice": {
-      "1wk": 1.26,
-      "1mo": 22.31,
-      "3mo": 23.14
+      "1wk": 1.32,
+      "1mo": 22.38,
+      "3mo": 23.21
     },
     "realizedPrice": {
       "1wk": 0.22,
@@ -2943,7 +2943,7 @@
   },
   "derived": {
     "ma200w": {
-      "current": 64972.7,
+      "current": 64971.95,
       "series": [
         {
           "d": "2026-05-14",
@@ -3423,13 +3423,13 @@
         },
         {
           "d": "2026-09-10",
-          "v": 64972.7
+          "v": 64971.95
         }
       ]
     },
     "piCycle": {
-      "ma111": 67469.64,
-      "ma350x2": 160397.03,
+      "ma111": 67460.17,
+      "ma350x2": 160391.03,
       "ratio": 0.4206,
       "triggered": false,
       "series_ratio": [
@@ -4404,8 +4404,8 @@
       "live": {
         "d": "2026-09-10",
         "closesOn": "2026-09-13",
-        "price": 78305.35,
-        "maIfClosedNow": 79667.04,
+        "price": 77254.6,
+        "maIfClosedNow": 79646.02,
         "breakeven": 79694.83,
         "wouldBeAbove": false
       },
@@ -4447,14 +4447,188 @@
       "minClose": 61479.1,
       "minCloseDate": "2026-07-02",
       "lastDate": "2026-09-10",
-      "lastClose": 78305.35,
+      "lastClose": 77254.6,
       "daysHeld": 71,
       "daysTotal": 183,
       "daysLeft": 112,
       "progress": 0.388,
-      "ddToWick": -0.2627,
-      "ddToRound": -0.2721,
+      "ddToWick": -0.2527,
+      "ddToRound": -0.2622,
       "expired": false
+    },
+    "decision": {
+      "asOf": "2026-09-10",
+      "kolLines": {
+        "fage_weighted_cost": {
+          "v": 79600.0,
+          "label": "發哥 市場資本加權平均成本",
+          "source": "使用者轉述，未獨立驗證"
+        }
+      },
+      "tree": {
+        "state": "dumping",
+        "verdict": "下殺進行中，尚未出現反彈起點",
+        "goldenCross": {
+          "date": "2026-09-08",
+          "ma50": 69956.98,
+          "ma200": 69869.23
+        },
+        "refHigh": {
+          "d": "2026-09-03",
+          "v": 82280.62
+        },
+        "mayHigh": {
+          "d": "2026-05-06",
+          "v": 82850.0,
+          "note": "2026-05 高；lower-high 階梯的上緣"
+        },
+        "lowerHighGapPct": -0.69,
+        "dumpLow": {
+          "d": "2026-09-08",
+          "v": 77602.59
+        },
+        "dumpPctFromHigh": -5.69,
+        "rallyHigh": {
+          "d": "2026-09-09",
+          "v": 79741.64,
+          "pctOffDumpLow": 2.76
+        },
+        "brokeDumpLow": false,
+        "deadline": "2026-09-22",
+        "daysLeft": 12,
+        "precedents": [
+          {
+            "year": 2014,
+            "pct": [
+              -8.0,
+              -9.0
+            ],
+            "priceHi": 75698.17,
+            "priceLo": 74875.36,
+            "reached": false,
+            "outcome": "lower_high",
+            "note": "期中年；交叉後 lower high → 10 月低",
+            "stated": true
+          },
+          {
+            "year": 2015,
+            "pct": [
+              -13.0,
+              -13.0
+            ],
+            "priceHi": 71584.14,
+            "priceLo": 71584.14,
+            "reached": false,
+            "outcome": "lower_high",
+            "note": "前減半年；反彈到 lower high 後續跌",
+            "stated": true
+          },
+          {
+            "year": 2019,
+            "pct": [
+              -14.0,
+              -15.0
+            ],
+            "priceHi": 70761.33,
+            "priceLo": 69938.53,
+            "reached": false,
+            "outcome": "higher_high",
+            "note": "前減半年；反彈創 higher high",
+            "stated": true
+          },
+          {
+            "year": 2023,
+            "pct": [
+              -12.0,
+              -12.0
+            ],
+            "priceHi": 72406.95,
+            "priceLo": 72406.95,
+            "reached": false,
+            "outcome": "higher_high",
+            "note": "前減半年；先回踩 200D 後轉多",
+            "stated": true
+          }
+        ],
+        "precedentsReached": "0/4"
+      },
+      "volume": {
+        "asOfClose": "2026-09-09",
+        "lastVolume": 1787.7,
+        "mean30": 2055.7,
+        "z": -0.21,
+        "spike": false,
+        "spikeThreshold": 2.0,
+        "up10dVolume": 6061.2,
+        "down10dVolume": 11369.7,
+        "upDownVolRatio": 0.53,
+        "source": "Bitstamp BTC/USD 日線",
+        "live": {
+          "d": "2026-09-10",
+          "volumeSoFar": 1098.2,
+          "note": "今日(UTC)未收盤，量能仍在累積，不計入 z-score"
+        }
+      },
+      "ma200d": {
+        "ma200d": 69920.8,
+        "lastClose": 78281.65,
+        "aboveBy": 11.96,
+        "closesAboveStreak": 22,
+        "testWindowDays": 14,
+        "note": "Cowen 8/21 檢查點：第一次回檔能否守住 200D 兩週（2019 守不住→創新低；2023 守住→轉多）"
+      },
+      "bands": {
+        "asOfClose": {
+          "d": "2026-09-09",
+          "c": 78281.65
+        },
+        "minLowSinceRefHigh": 77602.59,
+        "minLowIncludingLive": 76651.34,
+        "bands": [
+          {
+            "key": "A",
+            "label": "72–75K",
+            "lo": 72000.0,
+            "hi": 75000.0,
+            "touched": false,
+            "needPctFromLast": -4.19,
+            "fromRefHighPct": [
+              -12.49,
+              -8.85
+            ],
+            "precedentsInOrBelow": 4,
+            "precedentTotal": 4
+          },
+          {
+            "key": "B",
+            "label": "70–72K（判例尾端＋200D 區）",
+            "lo": 70000.0,
+            "hi": 72000.0,
+            "touched": false,
+            "needPctFromLast": -8.02,
+            "fromRefHighPct": [
+              -14.93,
+              -12.49
+            ],
+            "precedentsInOrBelow": 2,
+            "precedentTotal": 4
+          },
+          {
+            "key": "C",
+            "label": "<70K",
+            "lo": 0.0,
+            "hi": 70000.0,
+            "touched": false,
+            "needPctFromLast": -10.58,
+            "fromRefHighPct": [
+              null,
+              -14.93
+            ],
+            "precedentsInOrBelow": 1,
+            "precedentTotal": 4
+          }
+        ]
+      }
     }
   }
 }
