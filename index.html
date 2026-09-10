@@ -132,6 +132,7 @@
   <div class="tab active" data-tab="core">核心指標</div>
   <div class="tab" data-tab="tab2">見底訊號板</div>
   <div class="tab" data-tab="ladder">階梯建倉</div>
+  <div class="tab" data-tab="decision">判決樹追蹤</div>
 </div>
 
 <!-- ============ TAB 1 ============ -->
@@ -162,6 +163,18 @@
     型態：<span class="tg calc">自動計算</span><span class="tg manual">手動·週更</span><span class="tg framework">框架</span><span class="tg event">事件</span>
   </div>
   <div class="signals" id="signals"></div>
+</div>
+
+<!-- ============ TAB 4 — 判決樹追蹤 ============ -->
+<div class="wrap" id="tab-decision" style="display:none">
+  <div class="synth" id="dec-synth"></div>
+  <div class="legend">
+    來源：Bitstamp 日 OHLCV（價格/量）· Binance takerBuyBaseVolume（主動買賣拆分）·
+    <span class="warn">今日 UTC 蠟燭未收盤，只列為進行中、不計入已確認判定</span>
+  </div>
+  <div class="hero" id="dec-cards" style="margin:0 0 14px;padding:0"></div>
+  <div class="rowlabel">價格帶研判（判例落點 vs 你的兩個關注帶）</div>
+  <div class="signals" id="dec-bands"></div>
 </div>
 
 <!-- ============ TAB 3 — 階梯建倉計畫 ============ -->
@@ -641,12 +654,98 @@ function renderLadder(){
   document.querySelectorAll(".lad-del").forEach(i=>i.onclick=e=>{ LADDER.tranches=LADDER.tranches.filter(x=>x.id!==e.target.dataset.id); saveLadder(); renderLadder(); });
 }
 
-// tab switch (3 tabs)
-const TAB_PANELS={core:"tab-core",tab2:"tab-tab2",ladder:"tab-ladder"};
+// ===== TAB 4: 判決樹追蹤（golden cross → dump → rally → higher/lower high）=====
+const DEC_STATE={
+  pre_cross:{t:"尚未出現黃金交叉",c:"var(--mut)",l:"bg"},
+  dumping:  {t:"下殺進行中",      c:"var(--amber)",l:"yellow"},
+  rallying: {t:"反彈中 · 等 resolve",c:"var(--blue)",l:"yellow"},
+  higher_high:{t:"higher high ✓ 熊市論點顯著轉弱",c:"var(--green)",l:"green"},
+  lower_high:{t:"lower high ✗ Q4 下殺論據成立",   c:"var(--red)",l:"red"},
+};
+function hcard(title,light,color,value,sub){
+  return `<div class="hcard"><div class="stripe" style="background:${color}"></div>
+    <div class="hh"><span class="hlight L-${light}"></span>${title}</div>
+    <div class="hv" style="color:${color}">${value}</div>
+    <div class="hs">${sub}</div></div>`;
+}
+function renderDecision(){
+  const d=DATA?.derived?.decision;
+  const syn=document.getElementById("dec-synth"), cards=document.getElementById("dec-cards"), bands=document.getElementById("dec-bands");
+  if(!d||!d.tree){ syn.innerHTML=`<div class="h">判決樹追蹤</div><p>資料尚未產生（需雲端跑過新版 fetch_data.py）。</p>`; cards.innerHTML=""; bands.innerHTML=""; return; }
+  const t=d.tree, st=DEC_STATE[t.state]||DEC_STATE.dumping;
+
+  syn.innerHTML=`<div class="h">判決樹狀態 · 依 Cowen 2026-09-08 規則</div>
+    <div class="tally" style="color:${st.c}">${st.t}　·　剩 ${t.daysLeft} 天到期（${t.deadline}）</div>
+    <p>規則：黃金交叉後的下殺<b>雙向都不算證據</b>；裁決在<b>下殺結束後第一波反彈</b>——
+    高過參考高 <b>${usd(t.refHigh.v)}</b>（${t.refHigh.d}）＝熊市論點顯著轉弱；
+    走成 lower high 且再破 dump low ＝ Q4 下殺論據。
+    ⚠ 期限與 9/12 CPI、9/16 FOMC 重疊，且 Cowen 本人此期間旅行缺席約 10 天。</p>`;
+
+  // ① 狀態機
+  const rh=t.rallyHigh;
+  cards.innerHTML = hcard("① 判決樹狀態機",st.l,st.c,st.t,
+    `黃金交叉 <b>${t.goldenCross.date}</b>（50D <b>${usd(t.goldenCross.ma50)}</b> 上穿 200D <b>${usd(t.goldenCross.ma200)}</b>）<br>
+     參考高 <b>${usd(t.refHigh.v)}</b>（${t.refHigh.d}）→ dump low <b>${usd(t.dumpLow.v)}</b>（${t.dumpLow.d}）＝
+     <b style="color:var(--amber)">${t.dumpPctFromHigh}%</b><br>
+     ${rh?`反彈高 <b>${usd(rh.v)}</b>（${rh.d}，自低點 +${rh.pctOffDumpLow}%）→ 距參考高
+       <b style="color:${rh.v>=t.refHigh.v?'var(--green)':'var(--red)'}">${((rh.v/t.refHigh.v-1)*100).toFixed(2)}%</b>`
+      :`尚未形成反彈起點`}<br>
+     是否再破 dump low：<b>${t.brokeDumpLow?"是":"否"}</b>`)
+
+  // ② 判例對照
+  + hcard("② 下殺深度 vs 四個歷史判例","bg","var(--blue)",`已觸及 ${t.precedentsReached}`,
+    t.precedents.map(p=>{
+      const col=p.reached?"var(--green)":"var(--mut)";
+      const oc=p.outcome==="higher_high"?"→ higher high":"→ lower high";
+      return `<b style="color:${col}">${p.reached?"✓":"○"} ${p.year}</b> ${p.pct[0]}~${p.pct[1]}% ＝ <b>${usd(p.priceLo)}</b> <span style="color:var(--mut)">${oc}</span>`;
+    }).join("<br>")+`<br><span style="color:var(--mut)">判例值為 Cowen 口徑（未獨立驗證）；價位為自參考高換算</span>`)
+
+  // ③ 量能與買賣拆分
+  + (d.volume?hcard("③ 量能 · 主動買賣拆分",d.volume.spike?"green":"bg",d.volume.spike?"var(--green)":"var(--blue)",
+      `買方 ${d.volume.takerBuyPct??"—"}%　·　量 z ${d.volume.z}`,
+      `最後收盤日 <b>${d.volume.asOfClose}</b>：量 <b>${d.volume.lastVolume}</b> BTC vs 30 日均 <b>${d.volume.mean30}</b>
+       → z <b>${d.volume.z}</b>（投降門檻 z≥${d.volume.spikeThreshold}：<b style="color:${d.volume.spike?'var(--green)':'var(--red)'}">${d.volume.spike?"已觸發":"未觸發"}</b>）<br>
+       近 10 日 <b>漲日量/跌日量 = ${d.volume.upDownVolRatio}</b>（<1 ＝ 跌時放量）<br>
+       ${d.volume.takerBuyPct!=null?`主動買占比：當日 <b>${d.volume.takerBuyPct}%</b> · 5 日 <b>${d.volume.takerBuyPct5d}%</b> · 20 日 <b>${d.volume.takerBuyPct20d}%</b>
+       <span style="color:var(--mut)">（&lt;50% ＝ 主動賣方主導）</span>`:""}
+       ${d.volume.live?`<br><span style="color:var(--mut)">今日進行中量 ${d.volume.live.volumeSoFar}，未計入</span>`:""}`):"")
+
+  // ④ lower-high 階梯 + 各家線
+  + hcard("④ lower-high 階梯與各家關鍵線","bg","var(--accent)",
+      `距 5 月高 ${t.lowerHighGapPct}%`,
+      `參考高 <b>${usd(t.refHigh.v)}</b> vs 2026-05 高 <b>${usd(t.mayHigh.v)}</b> →
+       僅差 <b style="color:var(--amber)">${Math.abs(t.lowerHighGapPct)}%</b>；<b>突破即整個 2018 型下降階梯瓦解</b><br>
+       Cowen 50 週均線 <b>${usd(DATA?.derived?.ma50w?.week?.ma)}</b>（熊市終結判準）<br>
+       發哥 加權平均成本 <b>${usd(d.kolLines?.fage_weighted_cost?.v)}</b> <span style="color:var(--mut)">（轉述值，未驗證）</span><br>
+       ${d.ma200d?`200 日均線 <b>${usd(d.ma200d.ma200d)}</b>（現價高於 <b>${d.ma200d.aboveBy}%</b>，已連 <b>${d.ma200d.closesAboveStreak}</b> 日收在其上）<br>
+       <span style="color:var(--mut)">回踩此線＝ Cowen 8/21「守住兩週」檢查點復活</span>`:""}`);
+
+  // 價格帶
+  bands.innerHTML = (d.bands?.bands||[]).map(b=>{
+    const hit=b.touched, col=hit?"var(--green)":"var(--mut)";
+    return `<div class="hcard"><div class="stripe" style="background:${hit?"var(--green)":"var(--line)"}"></div>
+      <div class="hh"><span class="hlight L-${hit?"green":"bg"}"></span>${b.key}｜${b.label}</div>
+      <div class="hv" style="color:${col}">${hit?"已觸及":"未觸及"}</div>
+      <div class="hs">
+        自最新收盤還需 <b>${b.needPctFromLast}%</b> 才進此帶<br>
+        對應「自參考高跌幅」<b>${b.fromRefHighPct[1]}%</b>${b.fromRefHighPct[0]!=null?` ~ <b>${b.fromRefHighPct[0]}%</b>`:" 以下"}<br>
+        四個判例中有 <b>${b.precedentsInOrBelow}/${b.precedentTotal}</b> 的下殺深度會落進或穿過此帶
+      </div></div>`;
+  }).join("") + `<div class="hcard"><div class="stripe" style="background:var(--line)"></div>
+      <div class="hh"><span class="hlight L-bg"></span>本輪最低點</div>
+      <div class="hv">${usd(d.bands?.minLowIncludingLive)}</div>
+      <div class="hs">自參考高以來最低 wick（含今日進行中）<br>
+        已收盤口徑：<b>${usd(d.bands?.minLowSinceRefHigh)}</b><br>
+        <span style="color:var(--mut)">帶位觸及判定採含今日的 wick</span></div></div>`;
+}
+
+// tab switch (4 tabs)
+const TAB_PANELS={core:"tab-core",tab2:"tab-tab2",ladder:"tab-ladder",decision:"tab-decision"};
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
   const k=t.dataset.tab;
   if(k==="tab2") loadTab2();
   if(k==="ladder") loadLadder();
+  if(k==="decision") renderDecision();
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
   t.classList.add("active");
   Object.entries(TAB_PANELS).forEach(([key,id])=>{ const e=document.getElementById(id); if(e) e.style.display = key===k?"":"none"; });

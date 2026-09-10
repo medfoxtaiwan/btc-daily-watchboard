@@ -23,6 +23,12 @@ Usage: python3 fetch_data.py
 import json, sys, time, math, urllib.request, pathlib
 from datetime import datetime, timezone, date, timedelta
 
+try:                # 判決樹追蹤（golden cross / 價格帶 / 量能 / 200D 回踩）
+    import trackers # 缺檔或語法錯不得拖垮每日核心更新 → decision 區塊自動跳過
+except Exception as _e:
+    trackers = None
+    print(f"[init] trackers 模組載入失敗，decision 區塊將跳過: {_e}", file=sys.stderr)
+
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "data.json"
 DOMF = HERE / "dominance_history.json"
@@ -89,37 +95,73 @@ def _mean(xs):
     return sum(xs) / len(xs) if xs else None
 
 def _bitstamp_ohlc(params):
-    """回傳 [(ts, close, low)]；失敗回 []。low 供 lower-low 追蹤（同一 response，不多打 API）。"""
+    """回傳 [dict(ts,o,h,l,c,v)]；失敗回 []。
+
+    ⚠ 同一 response 就含 OHLCV，全留不多打 API：
+      low  → lower-low 追蹤；high → 判決樹的局部高／lower-high 階梯；volume → 量能。
+    """
     url = "https://www.bitstamp.net/api/v2/ohlc/btcusd/?step=86400&" + params
     raw = fetch(url)
     rows = []
     if raw and isinstance(raw, dict):
         for row in raw.get("data", {}).get("ohlc", []):
             try:
-                ts = int(row["timestamp"]); c = float(row["close"]); lo = float(row["low"])
+                ts = int(row["timestamp"])
+                o, h = float(row["open"]), float(row["high"])
+                lo, c = float(row["low"]), float(row["close"])
+                v = float(row["volume"])
             except (KeyError, TypeError, ValueError):
                 continue
-            if math.isfinite(c) and c > 0 and math.isfinite(lo) and lo > 0:
-                rows.append((ts, c, lo))
+            if not all(math.isfinite(x) for x in (o, h, lo, c, v)):
+                continue
+            if c > 0 and lo > 0 and h > 0:
+                rows.append({"ts": ts, "o": o, "h": h, "l": lo, "c": c, "v": v})
     return rows
 
 def fetch_bitstamp_daily():
-    """兩次分頁取 ~2000 天日 OHLC；回傳升冪 [(date, close, low)] 或 None。"""
+    """兩次分頁取 ~2000 天日 OHLCV；回傳升冪 [dict(d,o,h,l,c,v)] 或 None。"""
     try:
         now = int(time.time())
         recent = _bitstamp_ohlc(f"limit=1000&end={now}")
         if not recent:
             return None
-        oldest = min(ts for ts, _, _ in recent)
+        oldest = min(r["ts"] for r in recent)
         time.sleep(1)
         older = _bitstamp_ohlc(f"limit=1000&start={oldest - 1000*86400}&end={oldest - 86400}")
         merged = {}
-        for ts, c, lo in older + recent:
-            d = datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d")
-            merged[d] = (c, lo)
-        return [(d, v[0], v[1]) for d, v in sorted(merged.items())]
+        for r in older + recent:
+            d = datetime.fromtimestamp(r["ts"], timezone.utc).strftime("%Y-%m-%d")
+            merged[d] = {"d": d, "o": r["o"], "h": r["h"], "l": r["l"], "c": r["c"], "v": r["v"]}
+        return [merged[d] for d in sorted(merged)]
     except Exception as e:
         logmsg(f"[bitstamp] fail: {e}")
+        return None
+
+def to_cl_rows(rich):
+    """rich OHLCV → 既有消費者要的 [(date, close, low)] 投影（compute_week_ma50 / lower_low / derived）。"""
+    return [(r["d"], r["c"], r["l"]) for r in rich] if rich else None
+
+def fetch_binance_taker(limit=400):
+    """Binance 日線 takerBuyBaseVolume → 主動買 vs 主動賣拆分（真正的買賣量能）。
+
+    免 key、與 Bitstamp 獨立；失敗回 None，只影響 decision.volume 的 taker 欄位。
+    """
+    try:
+        raw = fetch(f"https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit={limit}")
+        if not isinstance(raw, list):
+            return None
+        out = []
+        for row in raw:
+            try:
+                d = datetime.fromtimestamp(row[0] / 1000, timezone.utc).strftime("%Y-%m-%d")
+                v, tb = float(row[5]), float(row[9])
+            except (IndexError, TypeError, ValueError):
+                continue
+            if math.isfinite(v) and math.isfinite(tb) and v > 0:
+                out.append({"d": d, "v": v, "tb": tb})
+        return out or None
+    except Exception as e:
+        logmsg(f"[binance] fail: {e}")
         return None
 
 # --- 50 週均線（週線口徑）------------------------------------------------
@@ -398,9 +440,18 @@ def main():
     # --- 副來源（各自 try/except；失敗不阻擋核心 data.json 寫出）---
     derived = None
     try:
-        derived = compute_derived(fetch_bitstamp_daily())
+        rich = fetch_bitstamp_daily()
+        derived = compute_derived(to_cl_rows(rich))
         if derived is None:
             logmsg("[main] derived 跳過（Bitstamp 無資料或歷史不足）")
+        elif rich and trackers:
+            # 判決樹追蹤（golden cross / 價格帶 / 量能 / 200D 回踩）；失敗不影響其餘 derived
+            try:
+                dec = trackers.build(rich, fetch_binance_taker())
+                if dec:
+                    derived["decision"] = dec
+            except Exception as e:
+                logmsg(f"[main] decision 例外: {e}")
     except Exception as e:
         logmsg(f"[main] derived 例外: {e}")
     if derived is None and OUT.exists():     # carry-forward 前一份
