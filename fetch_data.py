@@ -71,7 +71,12 @@ def fetch(url, retries=3):
                 return json.loads(r.read().decode())
         except Exception as e:
             print(f"[fetch] {url} attempt {i+1} failed: {e}", file=sys.stderr)
-            time.sleep(5)
+            # 451 = 地理封鎖（Binance vs 美國 runner）、403 = 拒絕：重試不會變好，立即放棄
+            if getattr(e, "code", None) in (403, 451):
+                print(f"[fetch] {url} 不重試（HTTP {e.code} 非暫時性）", file=sys.stderr)
+                return None
+            if i < retries - 1:
+                time.sleep(5)
     return None
 
 def pct(series):
