@@ -2943,7 +2943,7 @@
   },
   "derived": {
     "ma200w": {
-      "current": 64971.98,
+      "current": 64971.93,
       "series": [
         {
           "d": "2026-05-14",
@@ -3423,13 +3423,13 @@
         },
         {
           "d": "2026-09-10",
-          "v": 64971.98
+          "v": 64971.93
         }
       ]
     },
     "piCycle": {
-      "ma111": 67460.51,
-      "ma350x2": 160391.25,
+      "ma111": 67459.85,
+      "ma350x2": 160390.83,
       "ratio": 0.4206,
       "triggered": false,
       "series_ratio": [
@@ -4404,8 +4404,8 @@
       "live": {
         "d": "2026-09-10",
         "closesOn": "2026-09-13",
-        "price": 77292.73,
-        "maIfClosedNow": 79646.79,
+        "price": 77219.14,
+        "maIfClosedNow": 79645.32,
         "breakeven": 79694.83,
         "wouldBeAbove": false
       },
@@ -4447,13 +4447,13 @@
       "minClose": 61479.1,
       "minCloseDate": "2026-07-02",
       "lastDate": "2026-09-10",
-      "lastClose": 77292.73,
+      "lastClose": 77219.14,
       "daysHeld": 71,
       "daysTotal": 183,
       "daysLeft": 112,
       "progress": 0.388,
-      "ddToWick": -0.253,
-      "ddToRound": -0.2625,
+      "ddToWick": -0.2523,
+      "ddToRound": -0.2618,
       "expired": false
     },
     "decision": {
@@ -4566,14 +4566,14 @@
         "clvPressure5d": 40.5,
         "clvPressure20d": 56.2,
         "clvNote": "CLV 加權量能 0–100（50 中性，>50 買壓）；非真實 taker 拆分，僅方向參考",
-        "bitstampBuyPct": 44.6,
+        "bitstampBuyPct": 44.4,
         "bitstampAsOf": "2026-09-10",
-        "bitstampTrades": 52282,
+        "bitstampTrades": 52271,
         "bitstampSource": "Bitstamp 近 24h 逐筆成交 type 0/1（主動買 vs 主動賣），逐日累積",
         "bitstampHistoryDays": 1,
         "live": {
           "d": "2026-09-10",
-          "volumeSoFar": 1099.8,
+          "volumeSoFar": 1106.0,
           "note": "今日(UTC)未收盤，量能仍在累積，不計入 z-score"
         }
       },
