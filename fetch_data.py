@@ -394,6 +394,59 @@ def update_dominance_file(dom):
     DOMF.write_text(json.dumps(hist, ensure_ascii=False, indent=2, allow_nan=False))
     return pts[-1]["v"] if pts else None
 
+TAKERF = OUT.parent / "taker_history.json"
+
+def fetch_bitstamp_taker24():
+    """Bitstamp 近 24h 逐筆成交 → 主動買/賣拆分（type 0=buy, 1=sell）。
+
+    ⚠ 為什麼需要這條：GitHub Actions 的美國 runner 抓 Binance 會回 **HTTP 451（地理封鎖）**，
+      雲端因此拿不到 takerBuyBaseVolume。Bitstamp 與現有價格來源同 origin、美國可達，
+      但只給滾動 24 小時 → 比照 BTC.D 逐日累積成歷史。
+    """
+    try:
+        raw = fetch("https://www.bitstamp.net/api/v2/transactions/btcusd/?time=day")
+        if not isinstance(raw, list) or not raw:
+            return None
+        buy = sell = 0.0
+        for t in raw:
+            try:
+                amt = float(t["amount"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            if not math.isfinite(amt) or amt <= 0:
+                continue
+            if str(t.get("type")) == "0":
+                buy += amt
+            elif str(t.get("type")) == "1":
+                sell += amt
+        tot = buy + sell
+        if tot <= 0:
+            return None
+        return {"buy": round(buy, 2), "sell": round(sell, 2),
+                "buyPct": round(100 * buy / tot, 1), "trades": len(raw)}
+    except Exception as e:
+        logmsg(f"[bitstamp-taker] fail: {e}")
+        return None
+
+def update_taker_file(rec):
+    """逐日累積 Bitstamp 24h 買賣拆分（免費版無歷史，同 dominance 模式）。"""
+    if rec is None:
+        return None
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    try:
+        hist = json.loads(TAKERF.read_text()) if TAKERF.exists() else {"points": []}
+    except Exception:
+        hist = {"points": []}
+    pts = [p for p in hist.get("points", []) if p.get("d") != today]
+    pts.append({"d": today, **rec})
+    pts.sort(key=lambda x: x["d"])
+    pts = pts[-KEEP_DAYS:]
+    hist["points"] = pts
+    hist["note"] = ("Bitstamp 近 24h 逐筆成交的主動買/賣拆分；自部署日起逐日累積"
+                    "（Binance takerBuyBaseVolume 在美國 runner 被 HTTP 451 封鎖，故走此源）")
+    TAKERF.write_text(json.dumps(hist, ensure_ascii=False, indent=2, allow_nan=False))
+    return pts
+
 def main():
     series, current, changes = {}, {}, {}
     ok = True
@@ -447,7 +500,8 @@ def main():
         elif rich and trackers:
             # 判決樹追蹤（golden cross / 價格帶 / 量能 / 200D 回踩）；失敗不影響其餘 derived
             try:
-                dec = trackers.build(rich, fetch_binance_taker())
+                taker24 = update_taker_file(fetch_bitstamp_taker24())
+                dec = trackers.build(rich, fetch_binance_taker(), taker24=taker24)
                 if dec:
                     derived["decision"] = dec
             except Exception as e:

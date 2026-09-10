@@ -701,14 +701,25 @@ function renderDecision(){
     }).join("<br>")+`<br><span style="color:var(--mut)">判例值為 Cowen 口徑（未獨立驗證）；價位為自參考高換算</span>`)
 
   // ③ 量能與買賣拆分
-  + (d.volume?hcard("③ 量能 · 主動買賣拆分",d.volume.spike?"green":"bg",d.volume.spike?"var(--green)":"var(--blue)",
-      `買方 ${d.volume.takerBuyPct??"—"}%　·　量 z ${d.volume.z}`,
-      `最後收盤日 <b>${d.volume.asOfClose}</b>：量 <b>${d.volume.lastVolume}</b> BTC vs 30 日均 <b>${d.volume.mean30}</b>
-       → z <b>${d.volume.z}</b>（投降門檻 z≥${d.volume.spikeThreshold}：<b style="color:${d.volume.spike?'var(--green)':'var(--red)'}">${d.volume.spike?"已觸發":"未觸發"}</b>）<br>
-       近 10 日 <b>漲日量/跌日量 = ${d.volume.upDownVolRatio}</b>（<1 ＝ 跌時放量）<br>
-       ${d.volume.takerBuyPct!=null?`主動買占比：當日 <b>${d.volume.takerBuyPct}%</b> · 5 日 <b>${d.volume.takerBuyPct5d}%</b> · 20 日 <b>${d.volume.takerBuyPct20d}%</b>
-       <span style="color:var(--mut)">（&lt;50% ＝ 主動賣方主導）</span>`:""}
-       ${d.volume.live?`<br><span style="color:var(--mut)">今日進行中量 ${d.volume.live.volumeSoFar}，未計入</span>`:""}`):"")
+  + (d.volume?(()=>{ const v=d.volume;
+      // 買方占比優先序：Binance taker（有歷史）→ Bitstamp 逐筆（雲端可用）→ CLV 代理
+      const buy = v.takerBuyPct ?? v.bitstampBuyPct ?? null;
+      const buySrc = v.takerBuyPct!=null ? "Binance taker" : (v.bitstampBuyPct!=null ? "Bitstamp 逐筆" : "CLV 代理");
+      const head = buy!=null ? `買方 ${buy}%　·　量 z ${v.z}` : `CLV ${v.clvPressure5d??"—"}　·　量 z ${v.z}`;
+      let lines = `最後收盤日 <b>${v.asOfClose}</b>：量 <b>${v.lastVolume}</b> BTC vs 30 日均 <b>${v.mean30}</b>
+       → z <b>${v.z}</b>（投降門檻 z≥${v.spikeThreshold}：<b style="color:${v.spike?'var(--green)':'var(--red)'}">${v.spike?"已觸發":"未觸發"}</b>）<br>
+       近 10 日 <b>漲日量/跌日量 = ${v.upDownVolRatio}</b>（&lt;1 ＝ 跌時放量）<br>`;
+      if(v.takerBuyPct!=null) lines += `主動買占比（Binance）：當日 <b>${v.takerBuyPct}%</b> · 5 日 <b>${v.takerBuyPct5d}%</b> · 20 日 <b>${v.takerBuyPct20d}%</b>
+       <span style="color:var(--mut)">（&lt;50% ＝ 主動賣方主導）</span><br>`;
+      if(v.bitstampBuyPct!=null) lines += `主動買占比（Bitstamp 24h）：<b>${v.bitstampBuyPct}%</b>${v.bitstampBuyPct5d!=null?` · 5 日 <b>${v.bitstampBuyPct5d}%</b>`:""}
+       <span style="color:var(--mut)">（累積 ${v.bitstampHistoryDays} 天）</span><br>`;
+      if(v.clvPressure5d!=null) lines += `CLV 加權量能：5 日 <b>${v.clvPressure5d}</b> · 20 日 <b>${v.clvPressure20d}</b>
+       <span style="color:var(--mut)">（0–100，50 中性；零 API 代理）</span><br>`;
+      if(v.takerBuyPct==null) lines += `<span class="warn">⚠ Binance 在美國 runner 被 HTTP 451 封鎖，雲端改用 Bitstamp／CLV</span><br>`;
+      if(v.live) lines += `<span style="color:var(--mut)">今日進行中量 ${v.live.volumeSoFar}，未計入</span>`;
+      return hcard(`③ 量能 · 主動買賣拆分 <span style="color:var(--mut)">(${buySrc})</span>`,
+        v.spike?"green":"bg", v.spike?"var(--green)":"var(--blue)", head, lines);
+    })():"")
 
   // ④ lower-high 階梯 + 各家線
   + hcard("④ lower-high 階梯與各家關鍵線","bg","var(--accent)",

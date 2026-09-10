@@ -220,7 +220,27 @@ def compute_bands(rows, decision, today_utc=None):
 
 
 # --- 4) 量能（含買賣拆分）---------------------------------------------------
-def compute_volume(rows, taker=None, today_utc=None, win=30):
+def _clv_pressure(seg):
+    """Close Location Value 加權量能 ＝ 零 API 的買賣壓力代理（任何 IP 都能算）。
+
+    CLV = ((C−L)−(H−C)) / (H−L) ∈ [−1,1]；收在高點附近為正（買方主導）。
+    以成交量加權後取近 N 日合計 → 正值＝買壓，負值＝賣壓。與真實 taker 拆分方向一致但非同物，
+    僅在 taker 來源不可得（雲端被地理封鎖）時作為替代讀數，卡片會標明來源。
+    """
+    num = den = 0.0
+    for r in seg:
+        rng = r["h"] - r["l"]
+        if rng <= 0:
+            continue
+        clv = ((r["c"] - r["l"]) - (r["h"] - r["c"])) / rng
+        num += clv * r["v"]
+        den += r["v"]
+    if den <= 0:
+        return None
+    return 100 * (num / den + 1) / 2      # 映射到 0–100，50 ＝ 中性，便於與 buy% 並排讀
+
+
+def compute_volume(rows, taker=None, today_utc=None, win=30, taker24=None):
     """成交量 z-score、漲跌日量能比、taker 買方占比（真正的買賣量能）。
 
     Cowen 框架：底部收尾需要 volume spike（低量磨底 → 爆量投降）。
@@ -257,6 +277,26 @@ def compute_volume(rows, taker=None, today_utc=None, win=30):
         "source": "Bitstamp BTC/USD 日線",
     }
 
+    # 零 API 代理：CLV 加權量能（雲端被地理封鎖時的替代讀數）
+    out["clvPressure5d"] = _f(_clv_pressure(closed[-5:]), 1)
+    out["clvPressure20d"] = _f(_clv_pressure(closed[-20:]), 1)
+    out["clvNote"] = "CLV 加權量能 0–100（50 中性，>50 買壓）；非真實 taker 拆分，僅方向參考"
+
+    # 真實買賣拆分來源 A：Bitstamp 逐日累積的 24h 逐筆成交（雲端可用）
+    if taker24:
+        t24 = [p for p in taker24 if p.get("buyPct") is not None]
+        if t24:
+            last24 = t24[-1]
+            out["bitstampBuyPct"] = last24["buyPct"]
+            out["bitstampAsOf"] = last24["d"]
+            out["bitstampTrades"] = last24.get("trades")
+            if len(t24) >= 5:
+                tot = sum(p["buy"] + p["sell"] for p in t24[-5:])
+                out["bitstampBuyPct5d"] = _f(100 * sum(p["buy"] for p in t24[-5:]) / tot, 1) if tot > 0 else None
+            out["bitstampSource"] = "Bitstamp 近 24h 逐筆成交 type 0/1（主動買 vs 主動賣），逐日累積"
+            out["bitstampHistoryDays"] = len(t24)
+
+    # 真實買賣拆分來源 B：Binance takerBuyBaseVolume（本機可用；美國 runner 回 HTTP 451）
     if taker:
         tk = [t for t in taker if t["d"] < today_utc and t["v"] > 0]
         if tk:
@@ -305,13 +345,13 @@ def compute_200d_retrace(rows, today_utc=None):
     }
 
 
-def build(rows, taker=None, today_utc=None):
+def build(rows, taker=None, today_utc=None, taker24=None):
     """組裝整個 decision 區塊；任一子項失敗不影響其餘。"""
     today_utc = today_utc or date.today().isoformat()
     out = {"asOf": today_utc, "kolLines": KOL_LINES}
     dec = None
     for key, fn in (("tree", lambda: compute_decision_tree(rows, today_utc)),
-                    ("volume", lambda: compute_volume(rows, taker, today_utc)),
+                    ("volume", lambda: compute_volume(rows, taker, today_utc, taker24=taker24)),
                     ("ma200d", lambda: compute_200d_retrace(rows, today_utc))):
         try:
             v = fn()
