@@ -188,6 +188,13 @@
       "sell": 699.37,
       "buyPct": 49.1,
       "trades": 36656
+    },
+    {
+      "d": "2026-10-07",
+      "buy": 673.06,
+      "sell": 785.93,
+      "buyPct": 46.1,
+      "trades": 38028
     }
   ],
   "note": "Bitstamp 近 24h 逐筆成交的主動買/賣拆分；自部署日起逐日累積（Binance takerBuyBaseVolume 在美國 runner 被 HTTP 451 封鎖，故走此源）"
