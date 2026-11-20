@@ -1,5 +1,5 @@
 {
-  "data_through": "2026-11-18",
+  "data_through": "2026-11-19",
   "source": "bitcoin-data.com (free) + Bitstamp(200W/Pi/50W/lower-low) + CoinGecko(BTC.D)",
   "freshness": {
     "lag_days": 1,
@@ -8,10 +8,6 @@
   },
   "series": {
     "btcPrice": [
-      {
-        "d": "2026-07-22",
-        "v": 65983.186
-      },
       {
         "d": "2026-07-23",
         "v": 65094.4104
@@ -487,13 +483,13 @@
       {
         "d": "2026-11-18",
         "v": 62896.9342
+      },
+      {
+        "d": "2026-11-19",
+        "v": 61881.1587
       }
     ],
     "realizedPrice": [
-      {
-        "d": "2026-07-16",
-        "v": 52847.06
-      },
       {
         "d": "2026-07-17",
         "v": 52834.39
@@ -969,13 +965,13 @@
       {
         "d": "2026-11-12",
         "v": 53800.36
+      },
+      {
+        "d": "2026-11-13",
+        "v": 53749.84
       }
     ],
     "cvdd": [
-      {
-        "d": "2026-07-22",
-        "v": 13576.41
-      },
       {
         "d": "2026-07-23",
         "v": 13576.19
@@ -1451,13 +1447,13 @@
       {
         "d": "2026-11-18",
         "v": 14117.86
+      },
+      {
+        "d": "2026-11-19",
+        "v": 14121.88
       }
     ],
     "mvrvZscore": [
-      {
-        "d": "2026-07-16",
-        "v": 0.364
-      },
       {
         "d": "2026-07-17",
         "v": 0.3686
@@ -1933,13 +1929,13 @@
       {
         "d": "2026-11-12",
         "v": 0.5704
+      },
+      {
+        "d": "2026-11-13",
+        "v": 0.4712
       }
     ],
     "mayerMultiple": [
-      {
-        "d": "2026-07-22",
-        "v": 0.9076
-      },
       {
         "d": "2026-07-23",
         "v": 0.8972
@@ -2415,13 +2411,13 @@
       {
         "d": "2026-11-18",
         "v": 0.8655
+      },
+      {
+        "d": "2026-11-19",
+        "v": 0.8526
       }
     ],
     "balancedPriceCowen": [
-      {
-        "d": "2026-07-22",
-        "v": 39281.56
-      },
       {
         "d": "2026-07-23",
         "v": 39266.93
@@ -2873,58 +2869,58 @@
       {
         "d": "2026-11-12",
         "v": 39706.91
+      },
+      {
+        "d": "2026-11-13",
+        "v": 39649.8
       }
     ]
   },
   "current": {
-    "btcPrice": 62896.9342,
-    "realizedPrice": 53800.36,
-    "cvdd": 14117.86,
-    "mvrvZscore": 0.5704,
-    "mayerMultiple": 0.8655,
-    "balancedPriceCowen": 39706.91,
-    "btcDominance": 58.07
+    "btcPrice": 61881.1587,
+    "realizedPrice": 53749.84,
+    "cvdd": 14121.88,
+    "mvrvZscore": 0.4712,
+    "mayerMultiple": 0.8526,
+    "balancedPriceCowen": 39649.8,
+    "btcDominance": 58.02
   },
   "changes": {
     "btcPrice": {
-      "1wk": -14.78,
-      "1mo": -23.22,
-      "3mo": -13.92
+      "1wk": -13.19,
+      "1mo": -25.35,
+      "3mo": -21.03
     },
     "realizedPrice": {
-      "1wk": -0.27,
-      "1mo": -0.03,
-      "3mo": 2.21
+      "1wk": -0.29,
+      "1mo": -0.13,
+      "3mo": 2.1
     },
     "cvdd": {
-      "1wk": 0.21,
-      "1mo": 1.11,
-      "3mo": 3.01
+      "1wk": 0.2,
+      "1mo": 1.09,
+      "3mo": 2.97
     },
     "mvrvZscore": {
-      "1wk": -20.26,
-      "1mo": -40.24,
-      "3mo": 66.39
+      "1wk": -33.93,
+      "1mo": -47.82,
+      "3mo": 36.98
     },
     "mayerMultiple": {
-      "1wk": -14.46,
-      "1mo": -23.34,
-      "3mo": -18.28
+      "1wk": -12.71,
+      "1mo": -25.37,
+      "3mo": -24.87
     },
     "balancedPriceCowen": {
-      "1wk": -0.43,
-      "1mo": -0.42,
-      "3mo": 1.95
+      "1wk": -0.46,
+      "1mo": -0.55,
+      "3mo": 1.78
     }
   },
   "derived": {
     "ma200w": {
-      "current": 68062.02,
+      "current": 68089.0,
       "series": [
-        {
-          "d": "2026-07-23",
-          "v": 63189.03
-        },
         {
           "d": "2026-07-24",
           "v": 63221.03
@@ -3399,20 +3395,20 @@
         },
         {
           "d": "2026-11-19",
-          "v": 68062.02
+          "v": 68060.97
+        },
+        {
+          "d": "2026-11-20",
+          "v": 68089.0
         }
       ]
     },
     "piCycle": {
-      "ma111": 76370.48,
-      "ma350x2": 150032.2,
-      "ratio": 0.509,
+      "ma111": 76349.69,
+      "ma350x2": 149867.08,
+      "ratio": 0.5094,
       "triggered": false,
       "series_ratio": [
-        {
-          "d": "2026-07-23",
-          "v": 0.4063
-        },
         {
           "d": "2026-07-24",
           "v": 0.4069
@@ -3888,18 +3884,18 @@
         {
           "d": "2026-11-19",
           "v": 0.509
+        },
+        {
+          "d": "2026-11-20",
+          "v": 0.5094
         }
       ]
     },
-    "bitstamp_through": "2026-11-19",
+    "bitstamp_through": "2026-11-20",
     "history_days": 2000,
     "ma50w": {
       "current": 74990.81,
       "series": [
-        {
-          "d": "2026-07-23",
-          "v": 86505.79
-        },
         {
           "d": "2026-07-24",
           "v": 86505.79
@@ -4375,13 +4371,17 @@
         {
           "d": "2026-11-19",
           "v": 74990.81
+        },
+        {
+          "d": "2026-11-20",
+          "v": 74990.81
         }
       ],
       "live": {
-        "d": "2026-11-19",
+        "d": "2026-11-20",
         "closesOn": "2026-11-22",
-        "price": 63384.92,
-        "maIfClosedNow": 74450.41,
+        "price": 61922.99,
+        "maIfClosedNow": 74421.17,
         "breakeven": 74676.23,
         "wouldBeAbove": false
       },
@@ -4422,18 +4422,18 @@
       "minLowDate": "2026-07-02",
       "minClose": 61479.1,
       "minCloseDate": "2026-07-02",
-      "lastDate": "2026-11-19",
-      "lastClose": 63384.92,
-      "daysHeld": 141,
+      "lastDate": "2026-11-20",
+      "lastClose": 61922.99,
+      "daysHeld": 142,
       "daysTotal": 183,
-      "daysLeft": 42,
-      "progress": 0.7705,
-      "ddToWick": -0.0891,
-      "ddToRound": -0.1007,
+      "daysLeft": 41,
+      "progress": 0.776,
+      "ddToWick": -0.0676,
+      "ddToRound": -0.0795,
       "expired": false
     },
     "decision": {
-      "asOf": "2026-11-19",
+      "asOf": "2026-11-20",
       "kolLines": {
         "fage_weighted_cost": {
           "v": 79600.0,
@@ -4442,8 +4442,8 @@
         }
       },
       "tree": {
-        "state": "rallying",
-        "verdict": "反彈進行中，尚未 resolve",
+        "state": "dumping",
+        "verdict": "下殺進行中，尚未出現反彈起點",
         "goldenCross": {
           "date": "2026-09-08",
           "ma50": 69956.98,
@@ -4460,18 +4460,14 @@
         },
         "lowerHighGapPct": -0.69,
         "dumpLow": {
-          "d": "2026-11-15",
-          "v": 61946.62
+          "d": "2026-11-19",
+          "v": 61365.0
         },
-        "dumpPctFromHigh": -24.71,
-        "rallyHigh": {
-          "d": "2026-11-16",
-          "v": 65609.6,
-          "pctOffDumpLow": 5.91
-        },
+        "dumpPctFromHigh": -25.42,
+        "rallyHigh": null,
         "brokeDumpLow": false,
         "deadline": "2026-09-22",
-        "daysLeft": -58,
+        "daysLeft": -59,
         "precedents": [
           {
             "year": 2014,
@@ -4529,46 +4525,46 @@
         "precedentsReached": "4/4"
       },
       "volume": {
-        "asOfClose": "2026-11-18",
-        "lastVolume": 1216.3,
-        "mean30": 1657.9,
-        "z": -0.7,
+        "asOfClose": "2026-11-19",
+        "lastVolume": 1223.9,
+        "mean30": 1652.5,
+        "z": -0.68,
         "spike": false,
         "spikeThreshold": 2.0,
-        "up10dVolume": 6578.0,
-        "down10dVolume": 10585.3,
-        "upDownVolRatio": 0.62,
+        "up10dVolume": 4403.0,
+        "down10dVolume": 11809.2,
+        "upDownVolRatio": 0.37,
         "source": "Bitstamp BTC/USD 日線",
-        "clvPressure5d": 49.7,
-        "clvPressure20d": 46.4,
+        "clvPressure5d": 54.1,
+        "clvPressure20d": 46.0,
         "clvNote": "CLV 加權量能 0–100（50 中性，>50 買壓）；非真實 taker 拆分，僅方向參考",
-        "bitstampBuyPct": 43.1,
-        "bitstampAsOf": "2026-11-19",
-        "bitstampTrades": 47118,
-        "bitstampBuyPct5d": 48.3,
+        "bitstampBuyPct": 42.5,
+        "bitstampAsOf": "2026-11-20",
+        "bitstampTrades": 41359,
+        "bitstampBuyPct5d": 46.4,
         "bitstampSource": "Bitstamp 近 24h 逐筆成交 type 0/1（主動買 vs 主動賣），逐日累積",
-        "bitstampHistoryDays": 71,
+        "bitstampHistoryDays": 72,
         "live": {
-          "d": "2026-11-19",
-          "volumeSoFar": 169.7,
+          "d": "2026-11-20",
+          "volumeSoFar": 306.1,
           "note": "今日(UTC)未收盤，量能仍在累積，不計入 z-score"
         }
       },
       "ma200d": {
-        "ma200d": 72719.98,
-        "lastClose": 62976.18,
-        "aboveBy": -13.4,
+        "ma200d": 72636.73,
+        "lastClose": 61914.05,
+        "aboveBy": -14.76,
         "closesAboveStreak": 0,
         "testWindowDays": 14,
         "note": "Cowen 8/21 檢查點：第一次回檔能否守住 200D 兩週（2019 守不住→創新低；2023 守住→轉多）"
       },
       "bands": {
         "asOfClose": {
-          "d": "2026-11-18",
-          "c": 62976.18
+          "d": "2026-11-19",
+          "c": 61914.05
         },
-        "minLowSinceRefHigh": 61946.62,
-        "minLowIncludingLive": 61946.62,
+        "minLowSinceRefHigh": 61365.0,
+        "minLowIncludingLive": 61230.67,
         "bands": [
           {
             "key": "A",
@@ -4576,7 +4572,7 @@
             "lo": 72000.0,
             "hi": 75000.0,
             "touched": true,
-            "needPctFromLast": 19.09,
+            "needPctFromLast": 21.14,
             "fromRefHighPct": [
               -12.49,
               -8.85
@@ -4590,7 +4586,7 @@
             "lo": 70000.0,
             "hi": 72000.0,
             "touched": true,
-            "needPctFromLast": 14.33,
+            "needPctFromLast": 16.29,
             "fromRefHighPct": [
               -14.93,
               -12.49
@@ -4604,7 +4600,7 @@
             "lo": 0.0,
             "hi": 70000.0,
             "touched": true,
-            "needPctFromLast": 11.15,
+            "needPctFromLast": 13.06,
             "fromRefHighPct": [
               null,
               -14.93
